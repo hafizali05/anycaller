@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>anycaller — Call detail</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="logo">a</div>
+      <div>
+        <div class="brand-name">anycaller</div>
+        <div class="brand-sub">AI Outbound</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Workspace</div>
+      <a class="nav-item" href="./index.html"><i data-lucide="layout-dashboard" class="icon"></i> Dashboard</a>
+      <a class="nav-item" href="./contacts.html"><i data-lucide="users" class="icon"></i> Contacts <span class="nav-badge">2,148</span></a>
+      <a class="nav-item" href="./campaign-builder.html"><i data-lucide="megaphone" class="icon"></i> Campaigns</a>
+      <a class="nav-item active" href="./call-detail.html"><i data-lucide="phone-call" class="icon"></i> Calls</a>
+      <div class="nav-section">Tools</div>
+      <a class="nav-item"><i data-lucide="bar-chart-3" class="icon"></i> Insights</a>
+      <a class="nav-item"><i data-lucide="shield-x" class="icon"></i> DNC List</a>
+      <a class="nav-item"><i data-lucide="credit-card" class="icon"></i> Billing</a>
+      <a class="nav-item"><i data-lucide="settings" class="icon"></i> Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="avatar">HD</div>
+      <div>
+        <div class="user-name">Hafiz Didarali</div>
+        <div class="user-mail">hafiz@example.com</div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="row">
+        <a class="btn btn-ghost btn-sm" href="./campaign-monitor.html"><i data-lucide="arrow-left" class="icon"></i></a>
+        <div class="avatar lg" style="background: linear-gradient(135deg,#ec4899,#8b5cf6);">SC</div>
+        <div>
+          <div class="row" style="gap: 10px;">
+            <div class="topbar-title">Sarah Chen</div>
+            <span class="badge badge-live"><i data-lucide="check" style="width:11px;height:11px;"></i> Completed</span>
+          </div>
+          <div class="topbar-meta">
+            <span class="mono">+44 7700 900 412</span> · VP Engineering at Acme Corp ·
+            Q2 — Acme onboarding outreach · 3:41 duration · just now
+          </div>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn"><i data-lucide="phone" class="icon"></i> Call again</button>
+        <button class="btn"><i data-lucide="flag" class="icon"></i> Mark for follow-up</button>
+        <button class="btn"><i data-lucide="download" class="icon"></i> Download</button>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- Audio player -->
+      <div class="card" style="margin-bottom: 16px;">
+        <div class="audio-player" style="background: transparent; padding: 0;">
+          <button class="audio-play-btn"><i data-lucide="play" style="width:16px;height:16px;"></i></button>
+          <div style="flex: 1;">
+            <div class="audio-waveform"></div>
+          </div>
+          <div class="audio-time">1:18 / 3:41</div>
+          <button class="btn btn-sm btn-ghost"><i data-lucide="volume-2" class="icon"></i></button>
+          <button class="btn btn-sm btn-ghost"><i data-lucide="rewind" class="icon"></i> 10s</button>
+          <select class="select" style="width: 80px; padding: 6px 8px;">
+            <option>1.0×</option>
+            <option>1.25×</option>
+            <option>1.5×</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 2-col -->
+      <div class="grid" style="grid-template-columns: 3fr 2fr; gap: 16px;">
+
+        <!-- Transcript -->
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">Transcript</div>
+              <div class="cell-soft" style="font-size: 12px;">Timestamps clickable · jumps audio</div>
+            </div>
+            <div class="row">
+              <button class="btn btn-sm"><i data-lucide="search" class="icon"></i></button>
+              <button class="btn btn-sm"><i data-lucide="copy" class="icon"></i> Copy</button>
+            </div>
+          </div>
+
+          <div class="transcript">
+            <div class="bubble-row from-ai">
+              <div class="avatar sm">AI</div>
+              <div>
+                <div class="bubble">Hi Sarah, this is an AI assistant calling on behalf of Hafiz from anycaller. This call is being recorded for quality. Do you have a quick minute?</div>
+                <div class="bubble-ts">0:00</div>
+              </div>
+            </div>
+            <div class="bubble-row from-contact">
+              <div class="avatar sm" style="background: linear-gradient(135deg,#ec4899,#8b5cf6);">SC</div>
+              <div>
+                <div class="bubble">Uh, sure — what's this about?</div>
+                <div class="bubble-ts">0:08</div>
+              </div>
+            </div>
+            <div class="bubble-row from-ai">
+              <div class="avatar sm">AI</div>
+              <div>
+                <div class="bubble">Great, thanks. I'm reaching out because we built anycaller — an AI calling platform that lets sales teams replace eight hours of dialling with a five-minute campaign setup. I noticed you lead engineering at Acme — is outbound something your team is spending time on?</div>
+                <div class="bubble-ts">0:13</div>
+              </div>
+            </div>
+            <div class="bubble-row from-contact">
+              <div class="avatar sm" style="background: linear-gradient(135deg,#ec4899,#8b5cf6);">SC</div>
+              <div>
+                <div class="bubble">Not me personally, but our SDR team is. They burn a lot of hours dialling. What's the catch — is this just AI voicemail spam?</div>
+                <div class="bubble-ts">0:27</div>
+              </div>
+            </div>
+            <div class="bubble-row from-ai">
+              <div class="avatar sm">AI</div>
+              <div>
+                <div class="bubble">Fair question. Two differences: the AI handles full back-and-forth conversation, not a one-way message — and every call returns structured data — outcome, objections, intent signals — straight into a CSV or your CRM. So you get the volume without losing the qualification.</div>
+                <div class="bubble-ts">0:38</div>
+              </div>
+            </div>
+            <div class="bubble-row from-contact">
+              <div class="avatar sm" style="background: linear-gradient(135deg,#ec4899,#8b5cf6);">SC</div>
+              <div>
+                <div class="bubble">Hmm. How does pricing work? We'd want to test this on a small batch first.</div>
+                <div class="bubble-ts">0:54</div>
+              </div>
+            </div>
+            <div class="bubble-row from-ai">
+              <div class="avatar sm">AI</div>
+              <div>
+                <div class="bubble">Totally — we start at £49 per seat per month on the Pro plan, with volume tiers above five seats. There's also a free 14-day trial, no credit card needed, that you can use to run that small batch. Would it be useful to see it on a 15-minute demo this week?</div>
+                <div class="bubble-ts">1:03</div>
+              </div>
+            </div>
+            <div class="bubble-row from-contact">
+              <div class="avatar sm" style="background: linear-gradient(135deg,#ec4899,#8b5cf6);">SC</div>
+              <div>
+                <div class="bubble">Yeah, I could do Thursday afternoon. Send me a couple of slots?</div>
+                <div class="bubble-ts">1:18</div>
+              </div>
+            </div>
+            <div class="bubble-row from-ai">
+              <div class="avatar sm">AI</div>
+              <div>
+                <div class="bubble">Perfect — I'll text and email you a calendar link with Thursday slots. Thanks for the few minutes, Sarah, have a good rest of your day.</div>
+                <div class="bubble-ts">1:25</div>
+              </div>
+            </div>
+            <div class="bubble-row from-contact">
+              <div class="avatar sm" style="background: linear-gradient(135deg,#ec4899,#8b5cf6);">SC</div>
+              <div>
+                <div class="bubble">Thanks, bye.</div>
+                <div class="bubble-ts">1:32</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top: 16px; padding: 10px 14px; background: var(--info-soft); border: 1px solid #bae6fd; border-radius: 8px; display: flex; gap: 10px; align-items: center;">
+            <i data-lucide="sparkles" style="width: 14px; height: 14px; color: var(--info);"></i>
+            <div style="font-size: 12.5px; color: var(--text-muted);">
+              <b>Summary:</b> Sarah confirmed Acme's SDR team is doing outbound. Asked about pricing and a small-batch test. Booked a Thursday demo. Tone: skeptical at first, opened up after objection-handling.
+            </div>
+          </div>
+        </div>
+
+        <!-- Right column — outcome + extracted -->
+        <div>
+
+          <div class="card" style="margin-bottom: 16px;">
+            <div class="card-title" style="margin-bottom: 12px;">Outcome</div>
+            <div class="field">
+              <label class="label">Result</label>
+              <select class="select">
+                <option>Interested — demo booked ✓</option>
+                <option>Interested — info pack sent</option>
+                <option>Callback requested</option>
+                <option>Not interested</option>
+                <option>Wrong person</option>
+                <option>Do-not-call requested</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="label">Tags</label>
+              <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                <span class="tag tag-green">Interested</span>
+                <span class="tag tag-indigo">Demo booked</span>
+                <span class="tag">Asked about pricing</span>
+                <span class="tag"><i data-lucide="plus" class="icon" style="width:11px;height:11px;"></i> Add</span>
+              </div>
+            </div>
+            <div class="field" style="margin-bottom: 0;">
+              <label class="label">Operator notes</label>
+              <textarea class="textarea" placeholder="Any context for follow-up…">Sounded skeptical of AI-spam concern. Worth Hafiz personally attending the Thu demo.</textarea>
+            </div>
+          </div>
+
+          <div class="card" style="margin-bottom: 16px;">
+            <div class="card-head" style="margin-bottom: 6px;">
+              <div class="card-title">AI-extracted fields</div>
+              <span class="tag tag-indigo" style="font-size: 10px;"><i data-lucide="sparkles" class="icon" style="width:10px;height:10px;"></i> Auto</span>
+            </div>
+            <div class="cell-soft" style="font-size: 12px; margin-bottom: 12px;">From the transcript. Editable.</div>
+
+            <div style="display: grid; gap: 10px;">
+              <div>
+                <div class="cell-soft" style="font-size: 11px;">INTERESTED</div>
+                <div class="cell-strong">Yes</div>
+              </div>
+              <div>
+                <div class="cell-soft" style="font-size: 11px;">DEMO BOOKED AT</div>
+                <div class="cell-strong">Thursday afternoon · awaiting calendar link</div>
+              </div>
+              <div>
+                <div class="cell-soft" style="font-size: 11px;">PRIMARY OBJECTION</div>
+                <div class="cell-strong">"Is this just AI voicemail spam?"</div>
+              </div>
+              <div>
+                <div class="cell-soft" style="font-size: 11px;">DECISION MAKER</div>
+                <div class="cell-strong">Likely yes <span class="cell-soft" style="font-weight: 400;">— she leads engineering, SDR team reports indirectly</span></div>
+              </div>
+              <div>
+                <div class="cell-soft" style="font-size: 11px;">BUDGET MENTIONED</div>
+                <div class="cell-strong">Not explicitly — asked to test on small batch first</div>
+              </div>
+              <div>
+                <div class="cell-soft" style="font-size: 11px;">INTENT SIGNAL</div>
+                <div class="cell-strong">
+                  <span class="tag tag-green">High</span>
+                  <span class="cell-soft" style="font-weight: 400; margin-left: 6px;">Asked pricing + requested demo unprompted</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title" style="margin-bottom: 12px;">Call details</div>
+            <div style="display: grid; gap: 8px; font-size: 13px;">
+              <div class="row between"><span class="cell-soft">Started</span><span>14:32:11</span></div>
+              <div class="row between"><span class="cell-soft">Ended</span><span>14:35:52</span></div>
+              <div class="row between"><span class="cell-soft">Duration</span><span class="mono">3:41</span></div>
+              <div class="row between"><span class="cell-soft">From number</span><span class="mono">+44 20 4524 7110</span></div>
+              <div class="row between"><span class="cell-soft">Voice</span><span>Aria · neutral</span></div>
+              <div class="row between"><span class="cell-soft">Latency (avg)</span><span class="mono">412ms</span></div>
+              <div class="row between"><span class="cell-soft">Cost</span><span>£0.74</span></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<nav class="proto-nav">
+  <a href="./index.html">Dashboard</a>
+  <a href="./contacts.html">Contacts</a>
+  <a href="./campaign-builder.html">Builder</a>
+  <a href="./campaign-monitor.html">Monitor</a>
+  <a class="active" href="./call-detail.html">Call detail</a>
+</nav>
+
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<script>lucide.createIcons();</script>
+</body>
+</html>
