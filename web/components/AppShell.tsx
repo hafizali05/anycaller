@@ -31,6 +31,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     (async () => {
+      // Dev-only screenshot bypass — `?preview=1` skips Cognito so the
+      // sandbox can render pages without a deployed pool. The
+      // process.env.NODE_ENV check is statically evaluated at build
+      // time, so this block is dead-code-eliminated in production.
+      if (
+        process.env.NODE_ENV === "development" &&
+        typeof window !== "undefined" &&
+        window.location.search.includes("preview=1")
+      ) {
+        setEmail("you@example.com");
+        setReady(true);
+        return;
+      }
       const session = await currentSession();
       if (!session) {
         router.replace("/login");
