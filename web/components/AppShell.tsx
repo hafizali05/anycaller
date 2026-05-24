@@ -12,13 +12,14 @@ import { Icon, Wordmark } from "@/components/ui";
 import { currentSession, signOut } from "@/lib/cognito";
 
 interface NavItem {
-  href: "/dashboard" | "/contacts";
+  href: "/dashboard" | "/contacts" | "/campaigns";
   label: string;
   icon: string;
 }
 
 const NAV: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: "feed" },
+  { href: "/campaigns", label: "Campaigns", icon: "dial" },
   { href: "/contacts", label: "Contacts", icon: "list" },
 ];
 
