@@ -18,18 +18,49 @@
 4. If a `docs/plans/<slice>.md` exists, that's the active implementation
    slice. Otherwise, ask which slice to plan next.
 
-**Stage:** First app code shipped. `web/` is a Next.js 16 App Router app
-with the landing page live (no backend yet). The next concrete pieces of
+## Project rules (durable — don't drift from these)
+
+1. **End-to-end slices.** Every slice ships frontend **and** backend
+   together. No half-built features. If a slice doesn't have a real
+   backend (e.g. the landing page), it's still considered end-to-end
+   because there's nothing dynamic to wire up.
+2. **AWS for all deploys.** `web/` (Next.js) → AWS Amplify Hosting.
+   Backend → AWS Lambda + API Gateway + DynamoDB + S3, region
+   `eu-west-2`. No Vercel, no third-party PaaS for the product.
+3. **Backend in Python.** FastAPI on Lambda (via AWS SAM or CDK) is
+   the default. No Next.js API routes for product logic — anything
+   dynamic goes through a Python Lambda.
+4. **Match hafiz.in conventions** where they exist. (This sandbox
+   doesn't have the hafiz.in repo accessible — only
+   `hafizali05/anycaller` is in scope — so we follow conventions the
+   PRD describes for matching it: Cognito auth, Amplify hosting,
+   eu-west-2, DynamoDB single-table, S3, plus standard Python+Lambda
+   layout. Flag anything that looks wrong to you so we can correct.)
+
+## Stage
+
+**First app code shipped.** `web/` is a Next.js 16 App Router app
+with the landing page live (no backend yet, but the landing page is
+static so this is still rule-1-compliant). The next concrete pieces of
 work, in rough order:
-1. **Deploy `web/`** to Vercel (or Amplify) for a public URL — the
-   user does this from their machine since deploy auth isn't in this
-   sandbox. `web/` is deploy-ready as a static frontend.
-2. **App shell + Live feed** — port the sidebar + the in-app Live feed
-   screen from `designs/app-screens-run.jsx` so the product surface
-   exists, still on mocked data, no backend.
-3. **Tech spike on voice-AI provider** (still PRD §8 open question #1).
-4. **Auth + workspace skeleton** (Cognito), then Contacts → Campaign
-   builder, per the original slice list below.
+1. **Deploy `web/` to AWS Amplify Hosting** for a public URL. User
+   does this from their machine since deploy auth isn't in this
+   sandbox. `web/` is deploy-ready as a static frontend (no SSR
+   dependencies on backend yet).
+2. **Auth + workspace skeleton (end-to-end slice).** Cognito user pool
+   + Python Lambda (`/api/auth/me`) + Next.js login/signup pages on
+   `web/`. First slice that exercises the full stack (frontend +
+   backend + AWS). Lays infrastructure (SAM or CDK) the rest of the
+   product will deploy onto.
+3. **Tech spike on voice-AI provider** (PRD §8 open question #1) —
+   Python worker that bridges Twilio media to OpenAI Realtime *and* to
+   Retell, places a 60-sec test call, compares latency/cost/dev
+   ergonomics. Output: `docs/decisions/voice-ai-provider.md`. Blocked
+   on user providing Twilio + OpenAI/Retell credentials.
+4. **Contacts CSV import** — first product slice on top of auth.
+   Frontend CSV uploader + Python Lambda + DynamoDB single-table.
+5. **Campaign builder → Live feed → Call detail** end-to-end, in that
+   order, each as its own slice.
 
 ## What's done
 
