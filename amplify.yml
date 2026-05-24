@@ -1,0 +1,21 @@
+# AWS Amplify Hosting build spec for web/ (Next.js 16 App Router).
+# Mirrors hafiz.in's amplify.yml but with appRoot: web (Amplify monorepo).
+version: 1
+applications:
+  - appRoot: web
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm ci
+        build:
+          commands:
+            - npm run build
+      artifacts:
+        baseDirectory: .next
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+          - .next/cache/**/*

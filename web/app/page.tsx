@@ -2,6 +2,7 @@
 
 /* any/call — landing page. Ported from designs/app-screens-home.jsx. */
 
+import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import {
   Button,
@@ -54,10 +55,14 @@ function HomeNav() {
         </div>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <span style={{ ...link, color: "var(--ink-2)" }}>Sign in</span>
-        <Button variant="primary" size="md" icon={<Icon name="phone" size={13} color="var(--paper)" />}>
-          Start free · 10 min
-        </Button>
+        <Link href="/login" style={{ ...link, color: "var(--ink-2)", textDecoration: "none" }}>
+          Sign in
+        </Link>
+        <Link href="/signup" style={{ textDecoration: "none" }}>
+          <Button variant="primary" size="md" icon={<Icon name="phone" size={13} color="var(--paper)" />}>
+            Start free · 10 min
+          </Button>
+        </Link>
       </div>
     </nav>
   );
@@ -1625,9 +1630,11 @@ function FinalCTA() {
         Ten minutes free. No card. Talk to your agent first if you want — we wait until you say go.
       </p>
       <div style={{ marginTop: 32, display: "inline-flex", alignItems: "center", gap: 12 }}>
-        <Button variant="accent" size="lg" icon={<Icon name="phone" size={14} color="#fff" />}>
-          Start free
-        </Button>
+        <Link href="/signup" style={{ textDecoration: "none" }}>
+          <Button variant="accent" size="lg" icon={<Icon name="phone" size={14} color="#fff" />}>
+            Start free
+          </Button>
+        </Link>
         <Button variant="ghost" size="lg">
           Book a walkthrough
         </Button>

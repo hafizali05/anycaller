@@ -30,12 +30,49 @@
 3. **Backend in Python.** FastAPI on Lambda (via AWS SAM or CDK) is
    the default. No Next.js API routes for product logic — anything
    dynamic goes through a Python Lambda.
-4. **Match hafiz.in conventions** where they exist. (This sandbox
-   doesn't have the hafiz.in repo accessible — only
-   `hafizali05/anycaller` is in scope — so we follow conventions the
-   PRD describes for matching it: Cognito auth, Amplify hosting,
-   eu-west-2, DynamoDB single-table, S3, plus standard Python+Lambda
-   layout. Flag anything that looks wrong to you so we can correct.)
+4. **Match hafiz.in conventions.** Read live in this sandbox (cloned
+   2026-05-24 via `GITHUB_TOKEN`). Concrete patterns we copy:
+   - **Backend.** Python FastAPI on Lambda via AWS Lambda Web
+     Adapter, packaged as a container image. `server/` at the repo
+     root, with `server/app/main.py` (FastAPI entry), `server/app/auth.py`
+     (Cognito ID-token verifier using `PyJWKClient`, exported as a
+     typed dependency `CognitoUser = Annotated[dict, Depends(...)]`),
+     `server/app/routes/<resource>.py` per route module.
+     `requirements.txt` + `Dockerfile` next to `app/`.
+   - **Function URL** with `AuthType: NONE` + JWT verified inside the
+     function (no API Gateway for v1 — Function URL is simpler and
+     supports response-streaming when we need SSE later).
+   - **Frontend auth.** `lib/cognito.ts` lazy-loads
+     `amazon-cognito-identity-js@6` + `aws-sdk@2` from a CDN on first
+     use (so anonymous landing-page visitors never download them).
+     Exports `signUp`, `confirmSignUp`, `signIn`, `signOut`,
+     `forgotPassword`, `confirmNewPassword`, `currentSession`,
+     `getIdToken`. `lib/loadScript.ts` is the lazy-loader helper.
+   - **Infra.** `template.yaml` (SAM) + `samconfig.toml` at repo root,
+     region `eu-west-2`. `amplify.yml` build spec. `infra/bootstrap.yaml`
+     for the GitHub Actions deployer role (OIDC, repo+branch scoped,
+     AdministratorAccess for v1, scope down later).
+     `.github/workflows/deploy-server.yml` deploys on push to `main`
+     touching `server/**`, `template.yaml`, or `samconfig.toml`.
+   - **Conventions to keep.** Pre-create LogGroups with retention
+     (Lambda auto-creates never-expire by default). KMS-encrypted S3
+     with `DenyInsecureTransport` bucket policy. Pin model/env IDs in
+     `samconfig.toml` `parameter_overrides` (CFN ignores template
+     `Default:` changes once a stack has resolved a param).
+   - **Differences for anycaller.**
+     - **New Cognito user pool** (`anycaller-users`) — the PRD already
+       calls this out: hafiz.in's pool is single-user, anycaller is
+       multi-tenant per workspace.
+     - **DynamoDB single-table** (`anycaller-data`) — hafiz.in uses
+       per-tool tables, anycaller uses one table with composite keys
+       (PRD §7).
+     - **No Identity Pool.** hafiz.in uses one to give the browser
+       direct DDB access. anycaller routes everything through the
+       Lambda, so we skip it.
+     - **No Playwright/Chromium** in the Dockerfile — we don't need
+       headless browsing on this stack (yet).
+     - **Auth as full pages**, not a modal. anycaller is auth-first
+       (the SaaS), not anonymous-with-tools (hafiz.in).
 
 ## Stage
 
