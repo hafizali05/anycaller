@@ -85,15 +85,14 @@ work, in rough order:
    sandbox. `web/` is deploy-ready as a static frontend (no SSR
    dependencies on backend yet).
 2. ~~Auth + workspace skeleton~~ — **done** (commit `9d2e120`).
-3. ~~Contacts CSV import~~ — **done** (this commit).
-4. **Tech spike on voice-AI provider** (PRD §8 open question #1) —
+3. ~~Contacts CSV import~~ — **done** (commit `78bac36`).
+4. ~~Campaign builder wizard~~ — **done** (commits `594c93b`, `dbe4662`,
+   `054a183`).
+5. **Tech spike on voice-AI provider** (PRD §8 open question #1) —
    Python worker that bridges Twilio media to OpenAI Realtime *and* to
    Retell, places a 60-sec test call, compares latency/cost/dev
    ergonomics. Output: `docs/decisions/voice-ai-provider.md`. Blocked
    on user providing Twilio + OpenAI/Retell credentials.
-5. **Campaign builder** — wizard (Brief → Contacts → Launch) saving a
-   campaign row. Frontend ports `designs/app-screens-create.jsx`; backend
-   adds `/campaigns` CRUD on DDB.
 6. **Live feed + Call detail** — port `designs/app-screens-run.jsx`.
    Reads call rows from DDB; the actual call orchestration lights up
    once the voice-AI spike concludes.
@@ -108,7 +107,8 @@ work, in rough order:
 | `fa57dd8` | Claude Design export v2 — adds home/landing page (`designs/app-screens-home.jsx`) | merged on `main` |
 | `1cf4916` | **First app code** — `web/` Next.js 16 app, design tokens ported, landing page shipped (port of `designs/app-screens-home.jsx`) | merged on `main` |
 | `9d2e120` | **Auth slice end-to-end** — SAM template (Cognito + DDB + Function URL + Lambda), Python FastAPI backend (`/healthz`, `/workspaces/me`), Next.js `/login` + `/signup` + `/dashboard` pages. Mirrors hafiz.in conventions. | merged on `main` |
-| _this commit_ | **Contacts slice end-to-end** — Python `/contacts` routes (list, create, bulk, patch, delete) with E.164 normalization + dedupe; Next.js `/contacts` list, `/contacts/new` manual add, `/contacts/import` CSV upload + column mapping + preview. AppShell sidebar (Dashboard / Contacts). | in progress |
+| `78bac36` | **Contacts slice end-to-end** — Python `/contacts` routes (list, create, bulk, patch, delete) with E.164 normalization + dedupe; Next.js `/contacts` list, `/contacts/new` manual add, `/contacts/import` CSV upload + column mapping + preview. AppShell sidebar. | merged on `main` |
+| `594c93b`, `dbe4662`, `054a183` | **Campaigns slice end-to-end** — Python `/campaigns` routes (CRUD + `/launch`) with audience snapshot from contact tags; Next.js `/campaigns` list and `/campaigns/new` 3-step wizard (Brief → Audience → Launch) with persona/voice/pace, schedule, review card. Launch flips draft → scheduled (dialing pending voice-AI spike). | merged on `main` |
 
 Files in the repo today:
 - `PRD.md` — Product Requirements Document, v0.1 draft. 11 sections from
