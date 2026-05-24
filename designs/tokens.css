@@ -1,0 +1,116 @@
+/* any/call — design tokens */
+
+:root {
+  /* Warm paper (default sepia) */
+  --paper: #f4efe4;
+  --paper-2: #ede6d4;
+  --paper-3: #e2d9c2;
+  --border: rgba(26, 23, 20, 0.10);
+  --border-2: rgba(26, 23, 20, 0.18);
+  --ink: #1a1714;
+  --ink-2: #4a443d;
+  --ink-3: #8a8278;
+  --ink-4: #b3aa9a;
+
+  --accent: #d94a2a;       /* vermillion — live / record */
+  --accent-2: #b8351c;
+  --accent-soft: rgba(217, 74, 42, 0.10);
+
+  --sage: #5b8a64;         /* resolved / positive */
+  --sage-soft: rgba(91, 138, 100, 0.12);
+
+  --amber: #b5872a;        /* warning / voicemail */
+  --amber-soft: rgba(181, 135, 42, 0.14);
+
+  --slate: #5a6b80;        /* neutral info */
+  --slate-soft: rgba(90, 107, 128, 0.12);
+
+  --radius: 10px;
+  --radius-sm: 6px;
+  --radius-lg: 14px;
+
+  --font-ui: "Geist", "Inter Tight", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "Geist Mono", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-display: "Newsreader", "Source Serif Pro", ui-serif, Georgia, serif;
+}
+
+/* Dark variant — applied by adding data-theme="dark" on the container */
+[data-theme="dark"] {
+  --paper: #16130f;
+  --paper-2: #1d1916;
+  --paper-3: #26211c;
+  --border: rgba(255, 245, 230, 0.10);
+  --border-2: rgba(255, 245, 230, 0.18);
+  --ink: #f0e9da;
+  --ink-2: #c2bbad;
+  --ink-3: #8a8278;
+  --ink-4: #5a5247;
+  --accent-soft: rgba(217, 74, 42, 0.18);
+  --sage-soft: rgba(91, 138, 100, 0.18);
+  --amber-soft: rgba(181, 135, 42, 0.18);
+  --slate-soft: rgba(140, 158, 180, 0.18);
+}
+
+/* Cream high-contrast variant */
+[data-theme="cream"] {
+  --paper: #faf7ec;
+  --paper-2: #f3eedd;
+  --paper-3: #e9e1ca;
+}
+
+/* Density */
+[data-density="compact"] { --dens: 0.85; }
+[data-density="regular"] { --dens: 1; }
+[data-density="comfy"]   { --dens: 1.15; }
+
+/* Resets scoped to the prototype */
+.ac-root {
+  font-family: var(--font-ui);
+  color: var(--ink);
+  background: var(--paper);
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.4;
+}
+.ac-root *, .ac-root *::before, .ac-root *::after {
+  box-sizing: border-box;
+}
+.ac-root button {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+/* Waveform bars */
+@keyframes ac-wave {
+  0%, 100% { transform: scaleY(0.2); }
+  50% { transform: scaleY(1); }
+}
+@keyframes ac-pulse-ring {
+  0% { transform: scale(1); opacity: 0.4; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+@keyframes ac-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+@keyframes ac-caret {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+@keyframes ac-stream {
+  from { opacity: 0; transform: translateY(2px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes ac-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes ac-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Scrollbar — subtle */
+.ac-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+.ac-scroll::-webkit-scrollbar-thumb { background: var(--ink-4); border-radius: 4px; }
+.ac-scroll::-webkit-scrollbar-track { background: transparent; }

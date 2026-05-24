@@ -10,8 +10,10 @@
 ## TL;DR for a fresh session
 
 1. Read `PRD.md` at the repo root (~330 lines — the full product spec).
-2. Open `designs/index.html` in a browser to see the visual mockups (5
-   screens; floating nav at the bottom jumps between them).
+2. Open `designs/index.html` in a browser to see the visual prototype
+   (single-page React+Babel-in-browser canvas; left rail toggles between
+   Brand system, Prototype, and Hero moments; top-right ⚙ opens the
+   tweaks panel for theme / accent / density).
 3. Read this file — current state, decisions, prerequisites.
 4. If a `docs/plans/<slice>.md` exists, that's the active implementation
    slice. Otherwise, ask which slice to plan next.
@@ -25,15 +27,39 @@ question #1 and the README's status list).
 | Commit | What | Status |
 |---|---|---|
 | `81ce489` | Initial commit — PRD, README, and HTML/CSS mockups | merged on `main` |
+| `1074a30` | PRD §6.8 — campaign insights & recommendations (voice/pace/schedule suggestions from past campaign performance, Phase 2) | merged on `main` |
+| _next_ | Designs replaced with Claude Design export — `any/call` React+Babel prototype (brand + interactive prototype + hero moments + tweaks panel) | in progress |
 
 Files in the repo today:
 - `PRD.md` — Product Requirements Document, v0.1 draft. 11 sections from
   problem statement through success metrics and glossary. Authoritative for
   scope.
 - `README.md` — short orientation; points at PRD as the source of truth.
-- `designs/` — five interactive HTML mockups (Dashboard, Contacts,
-  Campaign Builder, Campaign Monitor, Call Detail) sharing `styles.css`.
-  Open `index.html` to navigate.
+- `designs/` — `any/call` design prototype exported from Claude Design
+  (claude.ai/design). React + Babel-in-browser, no build step — open
+  `designs/index.html` directly. Files:
+  - `index.html` — entry point; loads React + Babel CDN and the `.jsx` files below.
+  - `tokens.css` — design tokens (warm-paper palette, vermillion live
+    accent, sage resolved, Geist + Geist Mono + Newsreader italic type,
+    density and theme variants).
+  - `design-canvas.jsx` — top-level canvas with three sections: **Brand
+    & system** (wordmark, palette, type, motion, call states),
+    **Prototype** (the interactive app — see below), **Hero moments**
+    (Brief→agent generation, live-call waveform, result extraction,
+    rehearsal, first-run empty state).
+  - `app.jsx`, `app-canvas.jsx`, `app-components.jsx`, `app-data.jsx`,
+    `app-screens-create.jsx`, `app-screens-run.jsx`,
+    `app-screens-library.jsx` — the prototype: 6-route app with Live
+    feed, New-campaign wizard (Brief → Contacts → Launch), Call detail
+    (transcript + recording + extracted fields), Rehearsal, Briefs
+    library, Contacts library, Campaigns list.
+  - `tweaks-panel.jsx` — top-right toolbar: theme (sepia / cream /
+    dark), accent color, density.
+  Brand: rebranded as **`any/call`** (the slash reads as a dialer
+  separator; the `●` beside it doubles as a live/record light). The
+  PRD's project name is still `anycaller` — that's a decision to confirm
+  before going further. There is no home/marketing page in the
+  prototype (Claude Design chat 2 started one but didn't finish).
 - `docs/STATUS.md` — this file.
 
 No backend, no frontend Next.js code, no AWS resources, no Twilio account,
