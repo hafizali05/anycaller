@@ -27,6 +27,12 @@ function Root() {
     <React.Fragment>
       <DesignCanvas>
 
+        <DCSection id="home" title="Home page" subtitle="The marketing front door — hero, transformation, use cases, pricing.">
+          <DCArtboard id="home-full" label="any/call.com · landing page" width={1320} height={6800}>
+            <HomeScreen />
+          </DCArtboard>
+        </DCSection>
+
         <DCSection id="brand" title="any/call" subtitle="Voice-forward AI dialer for non-developers — design system & primer">
           <DCArtboard id="primer" label="Primer · system at a glance" width={1280} height={620}>
             <Primer />

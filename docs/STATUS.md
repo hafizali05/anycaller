@@ -47,6 +47,10 @@ Files in the repo today:
     **Prototype** (the interactive app — see below), **Hero moments**
     (Brief→agent generation, live-call waveform, result extraction,
     rehearsal, first-run empty state).
+  - `app-screens-home.jsx` — marketing/landing page (nav, hero
+    composer + live-call card, magic-moment brief→agent, "what you get
+    back", use cases, how it works, live ribbon, trust, pricing, CTA,
+    footer).
   - `app.jsx`, `app-canvas.jsx`, `app-components.jsx`, `app-data.jsx`,
     `app-screens-create.jsx`, `app-screens-run.jsx`,
     `app-screens-library.jsx` — the prototype: 6-route app with Live
