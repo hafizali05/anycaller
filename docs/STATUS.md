@@ -18,9 +18,18 @@
 4. If a `docs/plans/<slice>.md` exists, that's the active implementation
    slice. Otherwise, ask which slice to plan next.
 
-**Stage:** Concept. No application code has been written. The next concrete
-work is the **tech spike on the voice-AI provider** (see PRD §8 open
-question #1 and the README's status list).
+**Stage:** First app code shipped. `web/` is a Next.js 16 App Router app
+with the landing page live (no backend yet). The next concrete pieces of
+work, in rough order:
+1. **Deploy `web/`** to Vercel (or Amplify) for a public URL — the
+   user does this from their machine since deploy auth isn't in this
+   sandbox. `web/` is deploy-ready as a static frontend.
+2. **App shell + Live feed** — port the sidebar + the in-app Live feed
+   screen from `designs/app-screens-run.jsx` so the product surface
+   exists, still on mocked data, no backend.
+3. **Tech spike on voice-AI provider** (still PRD §8 open question #1).
+4. **Auth + workspace skeleton** (Cognito), then Contacts → Campaign
+   builder, per the original slice list below.
 
 ## What's done
 
@@ -28,7 +37,9 @@ question #1 and the README's status list).
 |---|---|---|
 | `81ce489` | Initial commit — PRD, README, and HTML/CSS mockups | merged on `main` |
 | `1074a30` | PRD §6.8 — campaign insights & recommendations (voice/pace/schedule suggestions from past campaign performance, Phase 2) | merged on `main` |
-| _next_ | Designs replaced with Claude Design export — `any/call` React+Babel prototype (brand + interactive prototype + hero moments + tweaks panel) | in progress |
+| `7c7992c` | Designs replaced with Claude Design export v1 — `any/call` React+Babel prototype (brand + interactive prototype + hero moments + tweaks panel) | merged on `main` |
+| `fa57dd8` | Claude Design export v2 — adds home/landing page (`designs/app-screens-home.jsx`) | merged on `main` |
+| `1cf4916` | **First app code** — `web/` Next.js 16 app, design tokens ported, landing page shipped (port of `designs/app-screens-home.jsx`) | merged on `main` |
 
 Files in the repo today:
 - `PRD.md` — Product Requirements Document, v0.1 draft. 11 sections from
@@ -65,9 +76,17 @@ Files in the repo today:
   before going further. There is no home/marketing page in the
   prototype (Claude Design chat 2 started one but didn't finish).
 - `docs/STATUS.md` — this file.
+- `web/` — Next.js 16 App Router project. Landing page (`app/page.tsx`)
+  ported from `designs/app-screens-home.jsx`. Design tokens in
+  `app/globals.css`. Shared UI primitives in `components/ui.tsx`
+  (Wordmark, Waveform, StaticWaveform, Button, Icon, Tag, StatusPill,
+  StreamText, SectionLabel, Eyebrow, Display, HomeRule). Run
+  `cd web && npm run dev` to start it on `localhost:3000`. No backend,
+  no data fetching — everything is hardcoded/mocked.
 
-No backend, no frontend Next.js code, no AWS resources, no Twilio account,
-no voice-AI integration. Everything is paper / mockup at this point.
+No backend yet, no AWS resources, no Twilio account, no voice-AI
+integration. The product surface is one marketing page; the rest of
+the prototype is still HTML/JSX in `designs/`.
 
 ## Open decisions (from PRD §8 — resolve before / during MVP work)
 
