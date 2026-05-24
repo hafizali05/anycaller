@@ -46,6 +46,54 @@ export interface BulkResult {
   invalid: { row: string; reason: string }[];
 }
 
+export type CampaignType = "survey" | "sales" | "custom";
+export type CampaignStatus = "draft" | "scheduled" | "running" | "paused" | "completed";
+export type Pace = "slow" | "natural" | "fast";
+export type VoicemailBehavior = "leave" | "hangup" | "retry";
+export type ScheduleMode = "now" | "scheduled";
+
+export interface Schedule {
+  mode: ScheduleMode;
+  scheduledAt: string | null;
+}
+
+export interface Campaign {
+  id: string;
+  type: CampaignType;
+  name: string;
+  brief: string;
+  persona: string;
+  voice: string;
+  pace: Pace;
+  voicemail: VoicemailBehavior;
+  maxDurationMin: number;
+  retryMaxAttempts: number;
+  retryGapHours: number;
+  maxConcurrent: number;
+  audienceTags: string[];
+  schedule: Schedule;
+  status: CampaignStatus;
+  contactCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CampaignIn {
+  type?: CampaignType;
+  name: string;
+  brief?: string;
+  persona?: string;
+  voice?: string;
+  pace?: Pace;
+  voicemail?: VoicemailBehavior;
+  maxDurationMin?: number;
+  retryMaxAttempts?: number;
+  retryGapHours?: number;
+  maxConcurrent?: number;
+  audienceTags?: string[];
+  schedule?: Schedule;
+}
+
 async function authedFetch(path: string, init?: RequestInit): Promise<Response> {
   if (!BASE_URL) {
     throw new Error(
@@ -102,4 +150,36 @@ export async function patchContact(id: string, patch: Partial<ContactIn> & { dnc
 
 export async function deleteContact(id: string): Promise<void> {
   await authedFetch(`/contacts/${encodeURIComponent(id)}`, { method: "DELETE" });
+}
+
+export async function listCampaigns(): Promise<{ items: Campaign[] }> {
+  const res = await authedFetch("/campaigns");
+  return (await res.json()) as { items: Campaign[] };
+}
+
+export async function getCampaign(id: string): Promise<Campaign> {
+  const res = await authedFetch(`/campaigns/${encodeURIComponent(id)}`);
+  return (await res.json()) as Campaign;
+}
+
+export async function createCampaign(input: CampaignIn): Promise<Campaign> {
+  const res = await authedFetch("/campaigns", { method: "POST", body: JSON.stringify(input) });
+  return (await res.json()) as Campaign;
+}
+
+export async function patchCampaign(id: string, patch: Partial<CampaignIn>): Promise<Campaign> {
+  const res = await authedFetch(`/campaigns/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify(patch),
+  });
+  return (await res.json()) as Campaign;
+}
+
+export async function deleteCampaign(id: string): Promise<void> {
+  await authedFetch(`/campaigns/${encodeURIComponent(id)}`, { method: "DELETE" });
+}
+
+export async function launchCampaign(id: string): Promise<Campaign> {
+  const res = await authedFetch(`/campaigns/${encodeURIComponent(id)}/launch`, { method: "POST" });
+  return (await res.json()) as Campaign;
 }
