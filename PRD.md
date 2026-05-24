@@ -153,6 +153,7 @@ The novel surface area. Campaign type drives which fields appear in step 2.
 - Campaign name + internal description.
 - Voice persona (4–6 presets: e.g. Friendly female / Professional female / Friendly male / Professional male).
 - Speaking pace: slow / natural / fast.
+- **Suggested voice & pace** (after the workspace has run enough comparable campaigns): the persona and pace fields show an inline recommendation drawn from past performance — e.g. *"On your last 3 Sales campaigns, Friendly female + natural pace had a 5pp higher connect→positive rate than Professional male. Use it?"* — with one click to accept. See §6.8.
 - Max call duration (default 5 min, hard cap 15 min).
 - Voicemail behaviour: **Leave a message** (AI-generated) / **Hang up** / **Retry later**.
 - Retry policy: max attempts (default 2) and gap between attempts (default 24h).
@@ -209,6 +210,23 @@ The novel surface area. Campaign type drives which fields appear in step 2.
 | Auth | Email + password (AWS Cognito). Magic-link sign-in supported. |
 | Tenancy | One workspace per account at MVP. Data isolated by `workspaceId` partition key. |
 | Billing | Stripe. Pricing TBD; current placeholder: $0.20/connected-minute, $0.05/dial-attempt (passes telephony + AI cost + margin). Pre-paid credit model to avoid post-paid surprise bills. |
+
+### 6.8 Campaign insights & recommendations
+
+As a workspace builds a history of completed campaigns, the system surfaces data-driven suggestions to improve the next one. Every recommendation is evidence-backed and explained — never an opaque "the AI suggests X".
+
+| Surface | What it shows |
+|---|---|
+| Campaign builder — Voice & behaviour | Recommended voice persona and pace for the chosen campaign type, with the supporting cohort ("Friendly female + natural pace → 5pp higher positive rate on your last 3 Sales campaigns"). One click to apply. |
+| Campaign builder — Script | If similar past campaigns exist, flags phrases / value-prop ordering that correlated with better outcomes, and offers alternates. |
+| Campaign builder — Schedule | Recommended calling window and weekday mask based on connect-rate-by-hour across past campaigns to the same audience type. |
+| Post-campaign summary | Cohort breakdown of outcome rate by voice persona, pace, time of day, and retry-attempt number — the same data that powers future recommendations. |
+
+**Confidence threshold.** Recommendations are only surfaced when the comparison cohort is meaningful (default: ≥3 prior campaigns of the same type, ≥500 connected calls in each). Below that, the operator sees defaults with no suggestion. A workspace can opt out of recommendations entirely.
+
+**Success metric per campaign type.** What counts as "better" differs by type: Survey → completion rate, Sales → positive-intent rate, Recruitment → qualified-and-scheduled rate, Custom → operator-chosen primary outcome label. The recommendation engine resolves this from the campaign type definition.
+
+**Data-model implication for MVP.** Even though the recommendation surfaces are Phase 2, the `calls` schema must capture `voice_persona`, `voice_pace`, `tone_variant`, and the resolved outcome label from day one, so v1 data is usable by the recommender when it ships.
 
 ---
 
@@ -294,6 +312,7 @@ The novel surface area. Campaign type drives which fields appear in step 2.
 - **SMS** and **Email** campaigns (same campaign model, different channel)
 - Multi-user workspaces with roles (admin, operator, viewer)
 - A/B testing of scripts within a campaign
+- **Campaign insights & recommendations** — voice persona, pace, schedule, and script suggestions based on past campaign performance (see §6.8). Builds on the A/B testing data above.
 - Webhooks for outcomes
 
 ### Phase 3 (12+ weeks after MVP)
