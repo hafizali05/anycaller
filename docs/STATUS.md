@@ -84,20 +84,19 @@ work, in rough order:
    does this from their machine since deploy auth isn't in this
    sandbox. `web/` is deploy-ready as a static frontend (no SSR
    dependencies on backend yet).
-2. **Auth + workspace skeleton (end-to-end slice).** Cognito user pool
-   + Python Lambda (`/api/auth/me`) + Next.js login/signup pages on
-   `web/`. First slice that exercises the full stack (frontend +
-   backend + AWS). Lays infrastructure (SAM or CDK) the rest of the
-   product will deploy onto.
-3. **Tech spike on voice-AI provider** (PRD §8 open question #1) —
+2. ~~Auth + workspace skeleton~~ — **done** (commit `9d2e120`).
+3. ~~Contacts CSV import~~ — **done** (this commit).
+4. **Tech spike on voice-AI provider** (PRD §8 open question #1) —
    Python worker that bridges Twilio media to OpenAI Realtime *and* to
    Retell, places a 60-sec test call, compares latency/cost/dev
    ergonomics. Output: `docs/decisions/voice-ai-provider.md`. Blocked
    on user providing Twilio + OpenAI/Retell credentials.
-4. **Contacts CSV import** — first product slice on top of auth.
-   Frontend CSV uploader + Python Lambda + DynamoDB single-table.
-5. **Campaign builder → Live feed → Call detail** end-to-end, in that
-   order, each as its own slice.
+5. **Campaign builder** — wizard (Brief → Contacts → Launch) saving a
+   campaign row. Frontend ports `designs/app-screens-create.jsx`; backend
+   adds `/campaigns` CRUD on DDB.
+6. **Live feed + Call detail** — port `designs/app-screens-run.jsx`.
+   Reads call rows from DDB; the actual call orchestration lights up
+   once the voice-AI spike concludes.
 
 ## What's done
 
@@ -108,6 +107,8 @@ work, in rough order:
 | `7c7992c` | Designs replaced with Claude Design export v1 — `any/call` React+Babel prototype (brand + interactive prototype + hero moments + tweaks panel) | merged on `main` |
 | `fa57dd8` | Claude Design export v2 — adds home/landing page (`designs/app-screens-home.jsx`) | merged on `main` |
 | `1cf4916` | **First app code** — `web/` Next.js 16 app, design tokens ported, landing page shipped (port of `designs/app-screens-home.jsx`) | merged on `main` |
+| `9d2e120` | **Auth slice end-to-end** — SAM template (Cognito + DDB + Function URL + Lambda), Python FastAPI backend (`/healthz`, `/workspaces/me`), Next.js `/login` + `/signup` + `/dashboard` pages. Mirrors hafiz.in conventions. | merged on `main` |
+| _this commit_ | **Contacts slice end-to-end** — Python `/contacts` routes (list, create, bulk, patch, delete) with E.164 normalization + dedupe; Next.js `/contacts` list, `/contacts/new` manual add, `/contacts/import` CSV upload + column mapping + preview. AppShell sidebar (Dashboard / Contacts). | in progress |
 
 Files in the repo today:
 - `PRD.md` — Product Requirements Document, v0.1 draft. 11 sections from

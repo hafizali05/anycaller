@@ -1,13 +1,12 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Button, Eyebrow, Wordmark } from "@/components/ui";
-import { currentSession, signOut } from "@/lib/cognito";
+import Link from "next/link";
+import { AppShell } from "@/components/AppShell";
+import { Eyebrow, Icon } from "@/components/ui";
 import { fetchMe, type Me } from "@/lib/api";
 
 export default function DashboardPage() {
-  const router = useRouter();
   const [me, setMe] = useState<Me | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -15,51 +14,18 @@ export default function DashboardPage() {
   useEffect(() => {
     (async () => {
       try {
-        const session = await currentSession();
-        if (!session) {
-          router.replace("/login");
-          return;
-        }
-        const data = await fetchMe();
-        setMe(data);
+        setMe(await fetchMe());
       } catch (e: unknown) {
-        const msg = e instanceof Error ? e.message : String(e);
-        setError(msg);
+        setError(e instanceof Error ? e.message : String(e));
       } finally {
         setLoading(false);
       }
     })();
-  }, [router]);
-
-  function handleSignOut() {
-    signOut();
-    router.replace("/login");
-  }
+  }, []);
 
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        background: "var(--paper)",
-        color: "var(--ink)",
-        padding: "32px 56px",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 48,
-        }}
-      >
-        <Wordmark size={20} live />
-        <Button variant="ghost" size="md" onClick={handleSignOut}>
-          Sign out
-        </Button>
-      </div>
-
-      <div style={{ maxWidth: 720 }}>
+    <AppShell>
+      <div style={{ padding: "32px 48px", maxWidth: 920 }}>
         <Eyebrow>Dashboard</Eyebrow>
         <h1
           style={{
@@ -67,16 +33,12 @@ export default function DashboardPage() {
             fontFamily: "var(--font-display)",
             fontStyle: "italic",
             fontWeight: 400,
-            fontSize: 56,
+            fontSize: 48,
             lineHeight: 1.05,
             letterSpacing: "-0.02em",
           }}
         >
-          {loading
-            ? "Loading…"
-            : me
-              ? `Welcome to ${me.workspace.name}.`
-              : "Welcome."}
+          {loading ? "Loading…" : me ? `Welcome to ${me.workspace.name}.` : "Welcome."}
         </h1>
 
         {error && (
@@ -95,43 +57,75 @@ export default function DashboardPage() {
           </div>
         )}
 
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+            gap: 16,
+            marginTop: 8,
+          }}
+        >
+          <ActionCard
+            href="/contacts"
+            icon="list"
+            title="Contacts"
+            blurb="Upload a CSV, manage tags, mark DNC."
+          />
+          <ActionCard
+            href="/contacts/import"
+            icon="upload"
+            title="Import CSV"
+            blurb="Drag-and-drop. We normalize phones and skip duplicates."
+          />
+        </div>
+
         {me && (
           <div
             style={{
+              marginTop: 32,
               background: "var(--paper-2)",
               borderRadius: 14,
-              padding: "24px 28px",
+              padding: "20px 24px",
               boxShadow: "inset 0 0 0 1px var(--border)",
               display: "grid",
               gridTemplateColumns: "max-content 1fr",
-              rowGap: 10,
-              columnGap: 24,
-              fontSize: 14,
+              rowGap: 8,
+              columnGap: 20,
+              fontSize: 13,
             }}
           >
             <Field label="Email" value={me.email || "—"} />
-            <Field label="User sub" value={me.sub} mono />
-            <Field label="Workspace" value={me.workspace.name} />
             <Field label="Workspace ID" value={me.workspace.id} mono />
             <Field label="Created" value={me.workspace.createdAt} mono />
           </div>
         )}
-
-        <p
-          style={{
-            marginTop: 32,
-            fontSize: 13.5,
-            color: "var(--ink-3)",
-            lineHeight: 1.55,
-            maxWidth: 540,
-          }}
-        >
-          This is the placeholder dashboard. Next slice will add the sidebar
-          and the Live feed screen from <code>designs/app-screens-run.jsx</code>
-          on top of this shell.
-        </p>
       </div>
-    </main>
+    </AppShell>
+  );
+}
+
+function ActionCard({ href, icon, title, blurb }: { href: string; icon: string; title: string; blurb: string }) {
+  return (
+    <Link
+      href={href}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 8,
+        padding: "20px 22px",
+        background: "var(--paper-2)",
+        borderRadius: 12,
+        boxShadow: "inset 0 0 0 1px var(--border)",
+        textDecoration: "none",
+        color: "inherit",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <Icon name={icon} size={16} color="var(--accent)" />
+        <span style={{ fontSize: 16, fontWeight: 500 }}>{title}</span>
+      </div>
+      <span style={{ fontSize: 13, color: "var(--ink-2)", lineHeight: 1.5 }}>{blurb}</span>
+    </Link>
   );
 }
 

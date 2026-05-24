@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routes import workspaces
+from .routes import contacts, workspaces
 
 ALLOWED_ORIGIN = os.environ.get("ALLOWED_ORIGIN", "http://localhost:3000")
 
@@ -21,6 +21,7 @@ app.add_middleware(
 )
 
 app.include_router(workspaces.router)
+app.include_router(contacts.router)
 
 
 @app.get("/healthz")
