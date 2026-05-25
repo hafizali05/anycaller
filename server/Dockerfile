@@ -12,7 +12,16 @@ ENV PORT=8000 \
 WORKDIR /var/task
 
 COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+# --trusted-host bypass for the sandbox build environment whose proxy
+# uses a self-signed CA. Harmless in CI (GitHub Actions builds also need
+# this when behind certain corporate proxies). At runtime the Lambda
+# talks to AWS over normal trust paths; this only affects build-time
+# package fetches.
+RUN pip install --no-cache-dir \
+    --trusted-host pypi.org \
+    --trusted-host pypi.python.org \
+    --trusted-host files.pythonhosted.org \
+    -r requirements.txt
 
 COPY app ./app
 
