@@ -86,16 +86,26 @@ work, in rough order:
    dependencies on backend yet).
 2. ~~Auth + workspace skeleton~~ — **done** (commit `9d2e120`).
 3. ~~Contacts CSV import~~ — **done** (commit `78bac36`).
-4. ~~Campaign builder wizard~~ — **done** (commits `594c93b`, `dbe4662`,
-   `054a183`).
-5. **Tech spike on voice-AI provider** (PRD §8 open question #1) —
-   Python worker that bridges Twilio media to OpenAI Realtime *and* to
-   Retell, places a 60-sec test call, compares latency/cost/dev
-   ergonomics. Output: `docs/decisions/voice-ai-provider.md`. Blocked
-   on user providing Twilio + OpenAI/Retell credentials.
-6. **Live feed + Call detail** — port `designs/app-screens-run.jsx`.
-   Reads call rows from DDB; the actual call orchestration lights up
-   once the voice-AI spike concludes.
+4. ~~Campaign builder wizard~~ — **done** (commits `594c93b`, `dbe4662`, `054a183`).
+5. ~~Live feed + Call detail~~ — **done** (commit `159accf`). Polls
+   `/calls` every 5s; renders empty/loading states gracefully until
+   the worker writes data.
+6. ~~Briefs library~~ — **done** (commit `eb6e65f`).
+7. ~~Compliance attestation + Settings~~ — **done** (commit `3886305`).
+8. ~~Campaign control (pause/resume/stop) + brief reuse + dashboard KPIs~~ — **done** (commit `1753d91`).
+9. ~~CI deploy workflow + OIDC bootstrap~~ — **done** (commit `703855c`).
+10. **Tech spike on voice-AI provider** (PRD §8 open question #1) — only
+    remaining slice that is **blocked**. Needs the user to provide
+    Twilio + OpenAI/Retell credentials. The Python worker that bridges
+    Twilio media to a voice-to-voice LLM, places a 60-sec test call,
+    and compares latency/cost/dev ergonomics will land here. Output:
+    `docs/decisions/voice-ai-provider.md`.
+11. **Worker + orchestrator** — depends on #10. Once provider is
+    chosen, a Lambda or Fargate worker dials via Twilio, streams media
+    to the voice-AI, writes call rows to DDB. Live feed and Call detail
+    surfaces are already there waiting.
+12. **Stripe billing** — top-up, usage history, invoices. Independent
+    of #10 (could be picked up anytime).
 
 ## What's done
 
@@ -109,6 +119,11 @@ work, in rough order:
 | `9d2e120` | **Auth slice end-to-end** — SAM template (Cognito + DDB + Function URL + Lambda), Python FastAPI backend (`/healthz`, `/workspaces/me`), Next.js `/login` + `/signup` + `/dashboard` pages. Mirrors hafiz.in conventions. | merged on `main` |
 | `78bac36` | **Contacts slice end-to-end** — Python `/contacts` routes (list, create, bulk, patch, delete) with E.164 normalization + dedupe; Next.js `/contacts` list, `/contacts/new` manual add, `/contacts/import` CSV upload + column mapping + preview. AppShell sidebar. | merged on `main` |
 | `594c93b`, `dbe4662`, `054a183` | **Campaigns slice end-to-end** — Python `/campaigns` routes (CRUD + `/launch`) with audience snapshot from contact tags; Next.js `/campaigns` list and `/campaigns/new` 3-step wizard (Brief → Audience → Launch) with persona/voice/pace, schedule, review card. Launch flips draft → scheduled (dialing pending voice-AI spike). | merged on `main` |
+| `159accf` | **Run slice** — calls backend (`/calls` GET/POST/PATCH, GET by campaignId); Live feed at `/campaigns/[id]` with 5s polling, counters strip, outcomes ribbon; Call detail at `/calls/[id]` with transcript, recording strip, extracted fields. | merged on `main` |
+| `eb6e65f` | **Briefs slice** — `/briefs` CRUD + `/briefs/{id}/bump-usage`; library card grid at `/briefs`; shared editor at `/briefs/new` and `/briefs/[id]`. Sidebar adds Briefs + Settings entries. | merged on `main` |
+| `3886305` | **Compliance + settings slice** — AttestModal at launch (PRD §6.6 self-cert, 30-day re-prompt) stored in localStorage; `/settings` page with profile + workspace + last attestation + connection vars + plan placeholder. | merged on `main` |
+| `703855c` | **CI slice** — `infra/bootstrap.yaml` (GitHub OIDC + deployer role, scoped to repo+branch) and `.github/workflows/deploy-server.yml` (auto-deploys server on push to `main` touching `server/**` or infra). User runs the bootstrap CFN once, replaces an ACCOUNT_ID placeholder in the workflow, done. | merged on `main` |
+| `1753d91` | **Control + reuse + KPIs** — campaign Pause/Resume/Stop endpoints with allowed-from transitions; wizard accepts `?fromBrief=<id>` to prefill from a saved brief (Suspense-wrapped per Next 16); dashboard gets a 4-up KPI strip and a Recent campaigns list. | merged on `main` |
 
 Files in the repo today:
 - `PRD.md` — Product Requirements Document, v0.1 draft. 11 sections from
