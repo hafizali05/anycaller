@@ -199,6 +199,13 @@ export async function stopCampaign(id: string): Promise<Campaign> {
   return (await res.json()) as Campaign;
 }
 
+/* PRD §6.4 — CSV export of a campaign's calls. Returns the body as a
+ * Blob so the caller can trigger a download via URL.createObjectURL. */
+export async function exportCampaignCsv(id: string): Promise<Blob> {
+  const res = await authedFetch(`/campaigns/${encodeURIComponent(id)}/export.csv`);
+  return await res.blob();
+}
+
 export type CallStatus = "queued" | "ringing" | "live" | "completed" | "voicemail" | "failed" | "optout";
 export type CallOutcome = "yes" | "maybe" | "no" | null;
 

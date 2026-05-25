@@ -10,6 +10,7 @@ import { use, useEffect, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { Button, Icon, StaticWaveform, StatusPill, Waveform } from "@/components/ui";
 import {
+  exportCampaignCsv,
   getCampaign,
   listCalls,
   listContacts,
@@ -206,6 +207,24 @@ function Header({
     }
   }
 
+  async function downloadCsv() {
+    if (!campaign) return;
+    try {
+      const blob = await exportCampaignCsv(campaign.id);
+      const slug = campaign.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "campaign";
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `campaign-${slug}-calls.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : String(e));
+    }
+  }
+
   return (
     <div style={{ padding: "20px 28px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
       <div>
@@ -246,6 +265,11 @@ function Header({
             {campaign.contactCount} contacts
           </span>
         ) : null}
+        {(campaign?.status === "completed" || campaign?.status === "running" || campaign?.status === "paused") && (
+          <Button variant="ghost" size="sm" icon={<Icon name="arrowD" size={11} color="var(--ink)" />} onClick={() => void downloadCsv()}>
+            Export results
+          </Button>
+        )}
         {(campaign?.status === "running" || campaign?.status === "scheduled") && (
           <Button variant="ghost" size="sm" icon={<Icon name="pause" size={11} color="var(--ink)" />} onClick={() => transition(pauseCampaign)}>
             Pause

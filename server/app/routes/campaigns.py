@@ -12,12 +12,16 @@ in a follow-up slice. Launch flips status draft → scheduled but does
 NOT dial — actual dialing is gated on the voice-AI tech spike.
 """
 
+import csv
+import io
+import re
 from datetime import datetime, timezone
 from typing import Any, Literal
 from uuid import uuid4
 
 from boto3.dynamodb.conditions import Attr, Key
 from fastapi import APIRouter, HTTPException, status
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from ..auth import CognitoUser
@@ -304,3 +308,171 @@ def launch_campaign(campaign_id: str, user: CognitoUser) -> Campaign:
         ReturnValues="ALL_NEW",
     )
     return _item_to_campaign(resp["Attributes"])
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Export — PRD §6.4: "Bulk export to CSV — one row per call, with all
+# extracted fields as columns."
+# ──────────────────────────────────────────────────────────────────────
+_FIXED_COLUMNS = [
+    "call_id",
+    "contact_name",
+    "contact_phone",
+    "contact_company",
+    "status",
+    "outcome",
+    "attempt",
+    "duration_sec",
+    "started_at",
+    "ended_at",
+    "sentiment",
+    "snippet",
+]
+
+
+def _slugify(name: str) -> str:
+    """Filename-safe slug. Lowercased, ascii letters/digits/dashes only."""
+    s = re.sub(r"[^a-zA-Z0-9]+", "-", (name or "").strip().lower()).strip("-")
+    return s or "campaign"
+
+
+def _query_workspace_calls(workspace_id: str, campaign_id: str) -> list[dict]:
+    """All raw call items in the workspace that belong to the campaign.
+    Mirrors calls.list_calls: workspace-scoped Query + filter by
+    campaignId in app code (no GSI in v0)."""
+    items: list[dict] = []
+    last_key: dict | None = None
+    while True:
+        kwargs: dict[str, Any] = {
+            "KeyConditionExpression": Key("pk").eq(_ws_pk(workspace_id))
+            & Key("sk").begins_with("CALL#"),
+        }
+        if last_key:
+            kwargs["ExclusiveStartKey"] = last_key
+        resp = table.query(**kwargs)
+        for raw in resp.get("Items", []):
+            if raw.get("campaignId") == campaign_id:
+                items.append(raw)
+        last_key = resp.get("LastEvaluatedKey")
+        if not last_key:
+            break
+    return items
+
+
+def _query_workspace_contacts(workspace_id: str) -> dict[str, dict]:
+    """Map of contactId -> contact item. Mirrors contacts.list_contacts."""
+    by_id: dict[str, dict] = {}
+    last_key: dict | None = None
+    while True:
+        kwargs: dict[str, Any] = {
+            "KeyConditionExpression": Key("pk").eq(_ws_pk(workspace_id))
+            & Key("sk").begins_with("CONTACT#"),
+        }
+        if last_key:
+            kwargs["ExclusiveStartKey"] = last_key
+        resp = table.query(**kwargs)
+        for raw in resp.get("Items", []):
+            cid = raw.get("contactId")
+            if cid:
+                by_id[cid] = raw
+        last_key = resp.get("LastEvaluatedKey")
+        if not last_key:
+            break
+    return by_id
+
+
+def _stringify_extracted(value: Any) -> str:
+    """Extraction values may be scalars, lists, or dicts — flatten to a
+    CSV-safe string. csv.writer handles quoting; we just need a string."""
+    if value is None:
+        return ""
+    if isinstance(value, (str, int, float, bool)):
+        return str(value)
+    # Lists/dicts — render with json so structure isn't lost.
+    import json
+
+    try:
+        return json.dumps(value, default=str, ensure_ascii=False)
+    except (TypeError, ValueError):
+        return str(value)
+
+
+@router.get("/{campaign_id}/export.csv")
+def export_campaign_csv(campaign_id: str, user: CognitoUser) -> StreamingResponse:
+    """CSV download of every call in the campaign. One row per call;
+    fixed columns first, then one column per unique extracted field
+    (`extracted.<field_name>`) across the campaign's calls.
+
+    Streamed via StreamingResponse so a large export doesn't materialize
+    the whole CSV in memory."""
+    workspace = _get_or_create_workspace(user["sub"], user.get("email"))
+
+    # Confirm the campaign exists in this workspace (404 otherwise — same
+    # contract as get_campaign).
+    camp_item = table.get_item(
+        Key={"pk": _ws_pk(workspace.id), "sk": _campaign_sk(campaign_id)}
+    ).get("Item")
+    if not camp_item:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Campaign not found")
+
+    call_items = _query_workspace_calls(workspace.id, campaign_id)
+    # Sort oldest-first for the CSV so the file reads chronologically.
+    call_items.sort(key=lambda i: i.get("createdAt") or "")
+
+    contacts = _query_workspace_contacts(workspace.id)
+
+    # Collect every extracted field name seen across the campaign's
+    # calls, preserving first-seen order for stable column ordering.
+    extracted_fields: list[str] = []
+    seen_fields: set[str] = set()
+    for raw in call_items:
+        for k in (raw.get("extraction") or {}).keys():
+            if k not in seen_fields:
+                seen_fields.add(k)
+                extracted_fields.append(k)
+
+    header = _FIXED_COLUMNS + [f"extracted.{f}" for f in extracted_fields]
+
+    def _row_iter():
+        # csv.writer needs a file-like target; use a per-row StringIO so
+        # we yield each row independently to the response body rather
+        # than buffering the whole CSV.
+        buf = io.StringIO()
+        writer = csv.writer(buf)
+        writer.writerow(header)
+        yield buf.getvalue()
+        buf.seek(0)
+        buf.truncate(0)
+
+        for raw in call_items:
+            contact = contacts.get(raw.get("contactId") or "", {})
+            extraction = raw.get("extraction") or {}
+            duration = raw.get("durationSec")
+            row = [
+                raw.get("callId", ""),
+                contact.get("name") or "",
+                contact.get("phone") or "",
+                contact.get("company") or "",
+                raw.get("status", ""),
+                raw.get("outcome") or "",
+                str(int(raw.get("attempt") or 1)),
+                "" if duration is None else str(int(duration)),
+                raw.get("startedAt") or "",
+                raw.get("endedAt") or "",
+                raw.get("sentiment") or "",
+                raw.get("snippet") or "",
+            ]
+            for field in extracted_fields:
+                cell = extraction.get(field) or {}
+                row.append(_stringify_extracted(cell.get("value") if isinstance(cell, dict) else cell))
+            writer.writerow(row)
+            yield buf.getvalue()
+            buf.seek(0)
+            buf.truncate(0)
+
+    filename = f"campaign-{_slugify(camp_item.get('name', ''))}-calls.csv"
+    return StreamingResponse(
+        _row_iter(),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
