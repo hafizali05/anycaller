@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Newsreader } from "next/font/google";
 import "./globals.css";
 
@@ -26,6 +26,12 @@ export const metadata: Metadata = {
   title: "any/call — voice AI for the rest of us",
   description:
     "Describe the conversation in plain language. We build the agent, dial the numbers you upload, and hand back transcripts, recordings, and the data you asked for — structured.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#f4efe4",
 };
 
 export default function RootLayout({

@@ -84,6 +84,7 @@ function HomeHero() {
       }}
     >
       <div
+        data-mobile-hide
         style={{
           position: "absolute",
           top: 28,
@@ -1760,6 +1761,7 @@ function HomeFooter() {
 export default function HomePage() {
   return (
     <div
+      className="home-page"
       style={{
         background: "var(--paper)",
         color: "var(--ink)",
