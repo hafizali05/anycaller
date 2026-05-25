@@ -1,0 +1,170 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: "anycaller \u2014 Cognito (UP + App Client), DynamoDB single-table, FastAPI\
+  \ Lambda (container) on a Function URL. Mirrors hafiz.in conventions."
+Parameters:
+  AllowedOrigin:
+    Type: String
+    Default: http://localhost:3000
+    Description: 'CORS allow-origin for the Function URL. Set to the Amplify URL once
+      the frontend is deployed (e.g. https://main.<id>.amplifyapp.com).
+
+      '
+Globals:
+  Function:
+    MemorySize: 1024
+    Timeout: 30
+    Architectures:
+    - x86_64
+    Tracing: Active
+Resources:
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: anycaller-users
+      UsernameAttributes:
+      - email
+      AutoVerifiedAttributes:
+      - email
+      MfaConfiguration: 'OFF'
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: false
+          RequireUppercase: false
+      Schema:
+      - Name: email
+        AttributeDataType: String
+        Required: true
+        Mutable: true
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+        - Name: verified_email
+          Priority: 1
+      EmailConfiguration:
+        EmailSendingAccount: COGNITO_DEFAULT
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: false
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: anycaller-web
+      UserPoolId:
+        Ref: UserPool
+      GenerateSecret: false
+      ExplicitAuthFlows:
+      - ALLOW_USER_PASSWORD_AUTH
+      - ALLOW_USER_SRP_AUTH
+      - ALLOW_REFRESH_TOKEN_AUTH
+      PreventUserExistenceErrors: ENABLED
+      AccessTokenValidity: 60
+      IdTokenValidity: 60
+      RefreshTokenValidity: 30
+      TokenValidityUnits:
+        AccessToken: minutes
+        IdToken: minutes
+        RefreshToken: days
+      ReadAttributes:
+      - email
+      - email_verified
+      WriteAttributes:
+      - email
+  DataTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: anycaller-data
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+      - AttributeName: pk
+        AttributeType: S
+      - AttributeName: sk
+        AttributeType: S
+      KeySchema:
+      - AttributeName: pk
+        KeyType: HASH
+      - AttributeName: sk
+        KeyType: RANGE
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+  ApiFn:
+    Type: AWS::Serverless::Function
+    Metadata:
+      DockerContext: /home/user/anycaller/server
+      DockerTag: latest
+      Dockerfile: Dockerfile
+      SamResourceId: ApiFn
+    Properties:
+      FunctionName: anycaller-api-fn
+      PackageType: Image
+      LoggingConfig:
+        LogGroup:
+          Ref: ApiFnLogGroup
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID:
+            Ref: UserPool
+          COGNITO_APP_CLIENT_ID:
+            Ref: UserPoolClient
+          DDB_TABLE:
+            Ref: DataTable
+          ALLOWED_ORIGIN:
+            Ref: AllowedOrigin
+      FunctionUrlConfig:
+        AuthType: NONE
+        InvokeMode: BUFFERED
+        Cors:
+          AllowOrigins:
+          - Ref: AllowedOrigin
+          AllowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          AllowHeaders:
+          - Authorization
+          - Content-Type
+          MaxAge: 3000
+      Policies:
+      - Statement:
+        - Effect: Allow
+          Action:
+          - dynamodb:GetItem
+          - dynamodb:PutItem
+          - dynamodb:UpdateItem
+          - dynamodb:DeleteItem
+          - dynamodb:Query
+          - dynamodb:BatchGetItem
+          - dynamodb:BatchWriteItem
+          Resource:
+          - Fn::GetAtt:
+            - DataTable
+            - Arn
+          - Fn::Sub: ${DataTable.Arn}/index/*
+      ImageUri: apifn:latest
+  ApiFnLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/anycaller-api-fn
+      RetentionInDays: 14
+Outputs:
+  FunctionUrl:
+    Description: "Public Function URL \u2014 set as NEXT_PUBLIC_API_BASE_URL in Amplify."
+    Value:
+      Fn::GetAtt:
+      - ApiFnUrl
+      - FunctionUrl
+  UserPoolId:
+    Description: "Cognito User Pool ID \u2014 set as NEXT_PUBLIC_COGNITO_USER_POOL_ID."
+    Value:
+      Ref: UserPool
+  UserPoolClientId:
+    Description: "Cognito App Client ID \u2014 set as NEXT_PUBLIC_COGNITO_APP_CLIENT_ID."
+    Value:
+      Ref: UserPoolClient
+  DataTableName:
+    Value:
+      Ref: DataTable

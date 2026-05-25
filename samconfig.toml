@@ -18,4 +18,4 @@ disable_rollback = false
 # AllowedOrigin is bumped to the real Amplify URL after the first deploy
 # (CFN ignores template Default changes once a param has been resolved,
 # so pin overrides here).
-parameter_overrides = "AllowedOrigin=http://localhost:3000"
+parameter_overrides = "AllowedOrigins=http://localhost:3000,https://main.d3ctz0i36mpyeq.amplifyapp.com"

@@ -3,12 +3,13 @@ Transform: AWS::Serverless-2016-10-31
 Description: anycaller — Cognito (UP + App Client), DynamoDB single-table, FastAPI Lambda (container) on a Function URL. Mirrors hafiz.in conventions.
 
 Parameters:
-  AllowedOrigin:
-    Type: String
+  AllowedOrigins:
+    Type: CommaDelimitedList
     Default: http://localhost:3000
     Description: >
-      CORS allow-origin for the Function URL. Set to the Amplify URL once
-      the frontend is deployed (e.g. https://main.<id>.amplifyapp.com).
+      Comma-separated list of CORS allow-origins for the Function URL.
+      Include the Amplify URL once the frontend is deployed
+      (e.g. http://localhost:3000,https://main.<id>.amplifyapp.com).
 
 Globals:
   Function:
@@ -114,12 +115,12 @@ Resources:
           COGNITO_USER_POOL_ID: !Ref UserPool
           COGNITO_APP_CLIENT_ID: !Ref UserPoolClient
           DDB_TABLE: !Ref DataTable
-          ALLOWED_ORIGIN: !Ref AllowedOrigin
+          ALLOWED_ORIGINS: !Join [",", !Ref AllowedOrigins]
       FunctionUrlConfig:
         AuthType: NONE  # JWT verified inside the function via PyJWKClient
         InvokeMode: BUFFERED
         Cors:
-          AllowOrigins: [!Ref AllowedOrigin]
+          AllowOrigins: !Ref AllowedOrigins
           AllowMethods: [GET, POST, PUT, DELETE]
           AllowHeaders: [Authorization, Content-Type]
           MaxAge: 3000
