@@ -1793,9 +1793,9 @@ export default function HomePage() {
  * web/public/customers/, swap the src on each <img>.
  * ──────────────────────────────────────────────────────────────────── */
 const CUSTOMERS = [
-  { name: "Bookingwhizz", domain: "bookingwhizz.com" },
-  { name: "Blissmart",    domain: "blissmart.com" },
-  { name: "Simply Park and Fly", domain: "simplyparkandfly.co.uk" },
+  { name: "Bookingwhizz",        domain: "bookingwhizz.com",       logo: "/customers/bookingwhizz.svg" },
+  { name: "Blissmart",           domain: "blissmart.co.uk",        logo: "/customers/blissmart.png" },
+  { name: "Simply Park and Fly", domain: "simplyparkandfly.co.uk", logo: "/customers/simplyparkandfly.png" },
 ];
 
 function Customers() {
@@ -1803,13 +1803,13 @@ function Customers() {
     <section
       className="home-customers"
       style={{
-        padding: "48px 56px",
+        padding: "56px 56px",
         background: "var(--paper)",
         borderBottom: "1px solid var(--border)",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        gap: 22,
+        gap: 24,
       }}
     >
       <Eyebrow>Trusted by</Eyebrow>
@@ -1819,7 +1819,9 @@ function Customers() {
           flexWrap: "wrap",
           justifyContent: "center",
           alignItems: "center",
-          gap: 36,
+          gap: 56,
+          width: "100%",
+          maxWidth: 960,
         }}
       >
         {CUSTOMERS.map((c) => (
@@ -1828,37 +1830,33 @@ function Customers() {
             href={`https://${c.domain}`}
             target="_blank"
             rel="noopener noreferrer"
+            aria-label={c.name}
+            title={c.name}
             style={{
               display: "inline-flex",
               alignItems: "center",
-              gap: 10,
+              justifyContent: "center",
               padding: "8px 14px",
               borderRadius: 10,
               textDecoration: "none",
-              color: "var(--ink-2)",
-              transition: "background .15s, color .15s",
+              opacity: 0.75,
+              transition: "opacity .15s",
             }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "var(--paper-2)";
-              e.currentTarget.style.color = "var(--ink)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "transparent";
-              e.currentTarget.style.color = "var(--ink-2)";
-            }}
+            onMouseEnter={(e) => { e.currentTarget.style.opacity = "1"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.opacity = "0.75"; }}
           >
-            {/* Favicon via Google's public service. eslint-disable: this is
-                an intentional <img>, not next/image — keeps the src dynamic
-                and avoids configuring remote-image patterns. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={`https://www.google.com/s2/favicons?domain=${c.domain}&sz=64`}
-              alt=""
-              width={20}
-              height={20}
-              style={{ borderRadius: 4 }}
+              src={c.logo}
+              alt={c.name}
+              style={{
+                height: 36,
+                width: "auto",
+                maxWidth: 220,
+                objectFit: "contain",
+                display: "block",
+              }}
             />
-            <span style={{ fontSize: 15, fontWeight: 500, letterSpacing: "-0.005em" }}>{c.name}</span>
           </a>
         ))}
       </div>
