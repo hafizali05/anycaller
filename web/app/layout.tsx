@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Newsreader } from "next/font/google";
+import { VersionStamp } from "@/components/VersionStamp";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -44,7 +45,10 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${newsreader.variable}`}
     >
-      <body>{children}</body>
+      <body>
+        <VersionStamp />
+        {children}
+      </body>
     </html>
   );
 }
