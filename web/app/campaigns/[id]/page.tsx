@@ -228,23 +228,33 @@ function Header({
   return (
     <div style={{ padding: "20px 28px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
       <div>
-        <Link
-          href="/campaigns"
+        <div
           style={{
             display: "inline-flex",
             alignItems: "center",
-            gap: 6,
+            gap: 8,
             fontFamily: "var(--font-mono)",
             fontSize: 10.5,
-            letterSpacing: "0.12em",
+            letterSpacing: "0.14em",
             textTransform: "uppercase",
             color: "var(--ink-3)",
-            textDecoration: "none",
             marginBottom: 6,
           }}
         >
-          {campaign ? `${campaign.type} · ${campaign.status}` : loading ? "Loading…" : "Campaign"}
-        </Link>
+          {campaign ? (
+            <>
+              <Link href="/campaigns" style={{ color: "var(--ink-3)", textDecoration: "none" }}>
+                {campaign.name}
+              </Link>
+              <span>·</span>
+              <span style={{ color: campaign.status === "running" ? "var(--accent)" : "var(--ink-3)" }}>
+                {campaign.status}
+              </span>
+            </>
+          ) : (
+            <span>{loading ? "Loading…" : "Campaign"}</span>
+          )}
+        </div>
         <h1
           style={{
             margin: 0,
@@ -256,13 +266,19 @@ function Header({
             lineHeight: 1.05,
           }}
         >
-          {campaign?.name || "—"}
+          Live feed
         </h1>
       </div>
-      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+        {campaign && (
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "var(--font-mono)", fontSize: 11.5, color: "var(--ink-3)" }}>
+            <Icon name="clock" size={11} color="var(--ink-3)" />
+            started {timeAgo(campaign.updatedAt)}
+          </span>
+        )}
         {campaign?.contactCount ? (
           <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--ink-3)" }}>
-            {campaign.contactCount} contacts
+            · {campaign.contactCount} contacts
           </span>
         ) : null}
         {(campaign?.status === "completed" || campaign?.status === "running" || campaign?.status === "paused") && (
@@ -432,4 +448,14 @@ function countByStatus(calls: Call[]): Record<CallStatus, number> {
   const c: Record<CallStatus, number> = { queued: 0, ringing: 0, live: 0, completed: 0, voicemail: 0, failed: 0, optout: 0 };
   for (const x of calls) c[x.status] = (c[x.status] || 0) + 1;
   return c;
+}
+
+function timeAgo(iso: string): string {
+  const diffSec = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
+  if (diffSec < 60) return `${diffSec}s ago`;
+  const min = Math.floor(diffSec / 60);
+  if (min < 60) return `${min}m ago`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr}h ago`;
+  return `${Math.floor(hr / 24)}d ago`;
 }
