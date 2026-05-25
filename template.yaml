@@ -146,6 +146,73 @@ Resources:
       LogGroupName: /aws/lambda/anycaller-api-fn
       RetentionInDays: 14
 
+  # ──────────────────────────────────────────────────────────────────
+  # Voice — SIP Media Application (SMA) Lambda for Chime SDK PSTN
+  # audio. Invoked by Chime every time something happens on a call
+  # (new inbound, action complete, hangup, etc.). Returns a list of
+  # PSTN actions (Speak / Hangup / ...) for Chime to execute.
+  #
+  # Packaged as a zip (NOT a container image) because the handler is
+  # tiny — just boto3 + stdlib — so a zip is faster to deploy and
+  # cheaper to cold-start than the container ApiFn.
+  #
+  # The user must wire this function's ARN (see VoiceSmaFnArn output)
+  # into a SIP Media Application in the Chime SDK console once their
+  # UK phone number is verified.
+  # ──────────────────────────────────────────────────────────────────
+  VoiceSmaFn:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: anycaller-voice-sma-fn
+      CodeUri: server/voice/
+      Handler: sma_handler.lambda_handler
+      Runtime: python3.12
+      PackageType: Zip
+      LoggingConfig:
+        LogGroup: !Ref VoiceSmaFnLogGroup
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                # Polly for the Speak action's TTS. Chime calls Polly
+                # itself when it executes a Speak action, but having
+                # the perm on the function means we can also call
+                # Polly directly from the handler later if we want
+                # to pre-synthesise audio.
+                - polly:SynthesizeSpeech
+                # Transcribe Streaming for Stage 4 (live STT). We
+                # don't use it yet but grant now so the IAM change
+                # doesn't block a later code-only deploy.
+                - transcribe:StartStreamTranscription
+                # Bedrock for Stage 5 (Claude as the brain). Same
+                # rationale — scoped to "*" for now, will lock to
+                # specific model ARNs once we pick one.
+                - bedrock:InvokeModel
+              Resource: "*"
+
+  # LogGroup with retention, same pattern as the API Lambda.
+  VoiceSmaFnLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/anycaller-voice-sma-fn
+      RetentionInDays: 14
+
+  # Allow the Chime SDK Voice service to invoke this Lambda. Without
+  # this permission Chime will get AccessDenied when the SIP Media
+  # Application tries to fire the function on a new call. The Chime
+  # SDK Voice service principal is `voiceconnector.chime.amazonaws.com`
+  # (used by both Voice Connectors and SIP Media Applications).
+  VoiceSmaFnChimeInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt VoiceSmaFn.Arn
+      Action: lambda:InvokeFunction
+      Principal: voiceconnector.chime.amazonaws.com
+      # We don't constrain SourceArn here because the SIP Media
+      # Application is created out-of-band (in the Chime console)
+      # after the stack deploys, so its ARN isn't known yet. Tighten
+      # to the SMA ARN once it's been created.
+
 Outputs:
   FunctionUrl:
     Description: Public Function URL — set as NEXT_PUBLIC_API_BASE_URL in Amplify.
@@ -158,3 +225,10 @@ Outputs:
     Value: !Ref UserPoolClient
   DataTableName:
     Value: !Ref DataTable
+  VoiceSmaFnArn:
+    Description: >
+      ARN of the SIP Media Application Lambda. Paste this into the
+      "Endpoint" field when creating a SIP Media Application in the
+      Chime SDK Voice console, then assign your verified phone number
+      to that SMA.
+    Value: !GetAtt VoiceSmaFn.Arn
