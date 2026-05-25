@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routes import briefs, calls, campaigns, contacts, workspaces
+from .routes import briefs, calls, campaigns, contacts, verification, webhooks, workspaces
 
 ALLOWED_ORIGINS = [
     o.strip()
@@ -29,6 +29,8 @@ app.include_router(contacts.router)
 app.include_router(campaigns.router)
 app.include_router(calls.router)
 app.include_router(briefs.router)
+app.include_router(verification.router)
+app.include_router(webhooks.router)
 
 
 @app.get("/healthz")

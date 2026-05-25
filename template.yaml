@@ -10,6 +10,24 @@ Parameters:
       Comma-separated list of CORS allow-origins for the Function URL.
       Include the Amplify URL once the frontend is deployed
       (e.g. http://localhost:3000,https://main.<id>.amplifyapp.com).
+  StripeSecretKey:
+    Type: String
+    Default: ""
+    NoEcho: true
+    Description: >
+      Stripe secret API key (sk_test_... or sk_live_...). Used for
+      Stripe Identity verification sessions. Leave empty to disable
+      identity verification (existing users grandfathered, new
+      signups blocked from /verify with a "not configured" message).
+  StripeWebhookSecret:
+    Type: String
+    Default: ""
+    NoEcho: true
+    Description: >
+      Stripe webhook signing secret (whsec_...). Required to verify
+      incoming /webhooks/stripe payloads. Obtain after creating the
+      webhook endpoint in the Stripe dashboard pointing to
+      <FunctionUrl>/webhooks/stripe.
 
 Globals:
   Function:
