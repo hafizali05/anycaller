@@ -101,6 +101,184 @@ button { font-family: inherit; font-size: inherit; color: inherit; }
 }
 
 /* ────────────────────────────────────────────────────────────────────
+   App shell — desktop layout (default). On mobile the sidebar
+   becomes a slide-out drawer triggered by the hamburger in the
+   sticky top bar. Mirrored declarations in components/AppShell.tsx.
+   ──────────────────────────────────────────────────────────────── */
+.app-shell {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  min-height: 100vh;
+  background: var(--paper);
+  color: var(--ink);
+}
+.app-shell > .app-sidebar {
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  border-right: 1px solid var(--border);
+  background: var(--paper-2);
+  display: flex;
+  flex-direction: column;
+  padding: 18px 14px;
+}
+.app-shell > .app-content {
+  min-width: 0;
+  overflow: auto;
+}
+.app-shell > .app-mobile-header,
+.app-shell > .app-backdrop {
+  display: none;
+}
+
+@media (max-width: 800px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+  .app-shell > .app-mobile-header {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--paper-2);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  .app-shell > .app-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    max-width: 80vw;
+    height: 100vh;
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform 0.22s ease;
+    box-shadow: none;
+  }
+  .app-shell[data-drawer-open="true"] > .app-sidebar {
+    transform: translateX(0);
+    box-shadow: 4px 0 24px -8px rgba(0, 0, 0, 0.3);
+  }
+  .app-shell[data-drawer-open="true"] > .app-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(26, 23, 20, 0.45);
+    z-index: 90;
+    cursor: pointer;
+  }
+  .app-shell > .app-content {
+    grid-column: 1 / -1;
+    overflow-x: auto;
+  }
+
+  /* Inner page content — collapse multi-column grids, shrink padding,
+     scale headlines fluidly. Same approach as the .home-page block,
+     scoped to .app-shell descendants only. !important is necessary
+     because the inline style="grid-template-columns: ..." wins
+     specificity otherwise. */
+
+  /* Top-level page padding (most pages start with style="padding: 32px 48px") */
+  .app-shell > .app-content > div[style*="padding: 32px 48px"],
+  .app-shell > .app-content > div[style*="padding: 24px 32px"],
+  .app-shell > .app-content > div[style*="padding: 20px 28px"] {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    padding-top: 20px !important;
+  }
+
+  /* Auth-style header strips that hold title + button cluster */
+  .app-shell > .app-content [style*="justify-content: space-between"][style*="align-items: flex-end"] {
+    flex-wrap: wrap;
+    gap: 12px !important;
+  }
+
+  /* 2-, 3-, and 4-col grids → 1 col */
+  .app-shell [style*="grid-template-columns: 1fr 1fr"],
+  .app-shell [style*="grid-template-columns: repeat(2"],
+  .app-shell [style*="grid-template-columns: repeat(3"],
+  .app-shell [style*="grid-template-columns: repeat(4"],
+  .app-shell [style*="grid-template-columns: repeat(auto-fit"],
+  .app-shell [style*="grid-template-columns: repeat(auto-fill"] {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* 6-col counter strip on the Live feed: 3×2 layout */
+  .app-shell [style*="repeat(6, 1fr)"] {
+    grid-template-columns: 1fr 1fr 1fr !important;
+  }
+
+  /* Multi-col forms (1.4fr 0.9fr etc.) collapse to 1 col */
+  .app-shell [style*="grid-template-columns: 1.4fr"],
+  .app-shell [style*="grid-template-columns: 1.05fr"],
+  .app-shell [style*="grid-template-columns: 1.6fr 0.8fr"] {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* Table-row grids (e.g. 1.8fr 100px 110px ...): allow horizontal
+     scroll on the containing list rather than crushing the layout. */
+  .app-shell [style*="1.8fr"],
+  .app-shell [style*="1.6fr 1.2fr"],
+  .app-shell [style*="1.4fr 1.4fr 1.1fr"] {
+    min-width: 720px;
+  }
+
+  /* h1 inside the app — shrink */
+  .app-shell > .app-content h1 {
+    font-size: clamp(26px, 7vw, 40px) !important;
+    line-height: 1.1 !important;
+    letter-spacing: -0.02em !important;
+  }
+
+  /* Big mono display numbers (counters) — shrink */
+  .app-shell [style*="font-size: 36px"] {
+    font-size: 26px !important;
+  }
+  .app-shell [style*="font-size: 56px"] {
+    font-size: 36px !important;
+  }
+
+  /* Search inputs and other 280px fixed-width controls — full width */
+  .app-shell input[type="search"],
+  .app-shell input[type="text"],
+  .app-shell input[type="email"],
+  .app-shell input[type="tel"],
+  .app-shell input[type="password"],
+  .app-shell input[type="datetime-local"],
+  .app-shell select,
+  .app-shell textarea {
+    max-width: 100%;
+  }
+  .app-shell [style*="width: 280px"] {
+    width: 100% !important;
+  }
+
+  /* Prevent stray fixed-width elements from causing horizontal page scroll
+     (table rows still scroll inside their own container via min-width above). */
+  .app-shell > .app-content > div {
+    max-width: 100vw;
+  }
+}
+
+/* ────────────────────────────────────────────────────────────────────
+   Auth pages (.app-shell isn't used on /login or /signup — they have
+   their own AuthShell). Provide a light mobile rule for them.
+   ──────────────────────────────────────────────────────────────── */
+@media (max-width: 800px) {
+  main[style*="placeItems"] > div[style*="max-width: 420px"] {
+    padding: 0 8px;
+  }
+}
+
+/* ────────────────────────────────────────────────────────────────────
    Mobile overrides for the landing page (.home-page on root).
    The page is built almost entirely with inline styles (fixed px
    widths, multi-col grids, 56px horizontal padding, 92px headlines),

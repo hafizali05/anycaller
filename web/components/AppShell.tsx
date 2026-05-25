@@ -1,10 +1,9 @@
 "use client";
 
-/* anycaller — sidebar shell. Matches designs/app.jsx Sidebar pixel-for-pixel:
- * wordmark, "+ New call campaign" CTA, NOW / LIBRARY / ACCOUNT sections,
- * live-pulse + counts, credits card. Dashboard and Settings are still
- * routes but reached via the footer; the design doesn't surface them
- * in the primary nav. */
+/* anycaller — sidebar shell. Matches designs/app.jsx Sidebar on desktop;
+ * on mobile (<= 800px) the sidebar slides out from the left as a drawer
+ * triggered by a hamburger button in a sticky top bar. CSS for both
+ * modes lives in app/globals.css (search ".app-shell"). */
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -14,10 +13,10 @@ import { currentSession, signOut } from "@/lib/cognito";
 import { listBriefs, listCalls, listCampaigns, listContacts, type Campaign } from "@/lib/api";
 
 interface Counts {
-  live: number;          // currently-live calls across all campaigns
-  campaigns: number;     // total campaigns
-  briefs: number;        // saved brief templates
-  contacts: number;      // contacts in workspace
+  live: number;
+  campaigns: number;
+  briefs: number;
+  contacts: number;
 }
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -27,6 +26,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
   const [counts, setCounts] = useState<Counts>({ live: 0, campaigns: 0, briefs: 0, contacts: 0 });
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -49,8 +49,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     })();
   }, [router]);
 
-  // Load sidebar counts once authed. Errors are swallowed — sidebar
-  // numbers are decorative; the page-level loaders surface real errors.
   useEffect(() => {
     if (!ready) return;
     (async () => {
@@ -69,14 +67,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           contacts: cts.items.length,
         });
       } catch {
-        /* ignore — page handles errors */
+        /* swallow */
       }
     })();
   }, [ready, pathname]);
 
+  // Close the drawer whenever the route changes (i.e. user tapped a nav item).
+  useEffect(() => {
+    setDrawerOpen(false);
+  }, [pathname]);
+
   const goToLiveFeed = useCallback(() => {
-    // Live feed routes to the most recently-touched active campaign.
-    // Fallback: /campaigns list.
     const active =
       campaigns.find((c) => c.status === "running") ||
       campaigns.find((c) => c.status === "scheduled") ||
@@ -106,27 +107,56 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const numbersActive = pathname.startsWith("/numbers");
 
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "220px 1fr",
-        minHeight: "100vh",
-        background: "var(--paper)",
-        color: "var(--ink)",
-      }}
-    >
-      <aside
-        style={{
-          height: "100vh",
-          position: "sticky",
-          top: 0,
-          borderRight: "1px solid var(--border)",
-          background: "var(--paper-2)",
-          display: "flex",
-          flexDirection: "column",
-          padding: "18px 14px",
-        }}
-      >
+    <div className="app-shell" data-drawer-open={drawerOpen ? "true" : "false"}>
+      {/* Mobile-only top bar */}
+      <header className="app-mobile-header">
+        <button
+          aria-label={drawerOpen ? "Close menu" : "Open menu"}
+          onClick={() => setDrawerOpen((o) => !o)}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 36,
+            height: 36,
+            border: "1px solid var(--border-2)",
+            borderRadius: 8,
+            background: "transparent",
+            cursor: "pointer",
+            padding: 0,
+          }}
+        >
+          <Icon name={drawerOpen ? "x" : "menu"} size={18} color="var(--ink)" />
+        </button>
+        <Wordmark size={16} live />
+        <Link
+          href="/campaigns/new"
+          aria-label="New call campaign"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 36,
+            height: 36,
+            background: "var(--ink)",
+            color: "var(--paper)",
+            borderRadius: 8,
+            textDecoration: "none",
+          }}
+        >
+          <Icon name="plus" size={16} color="var(--paper)" />
+        </Link>
+      </header>
+
+      {/* Backdrop (only visible when drawer is open on mobile) */}
+      <div
+        className="app-backdrop"
+        onClick={() => setDrawerOpen(false)}
+        aria-hidden="true"
+      />
+
+      {/* Sidebar (desktop: always visible; mobile: slide-out drawer) */}
+      <aside className="app-sidebar">
         <div style={{ padding: "4px 8px 18px" }}>
           <Wordmark size={17} live />
         </div>
@@ -248,7 +278,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      <section style={{ minWidth: 0, overflow: "auto" }}>{children}</section>
+      <section className="app-content">{children}</section>
     </div>
   );
 }

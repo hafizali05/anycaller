@@ -1795,7 +1795,7 @@ export default function HomePage() {
 const CUSTOMERS = [
   { name: "Bookingwhizz", domain: "bookingwhizz.com" },
   { name: "Blissmart",    domain: "blissmart.com" },
-  { name: "Simply Park",  domain: "simplypark.com" },
+  { name: "Simply Park and Fly", domain: "simplyparkandfly.co.uk" },
 ];
 
 function Customers() {

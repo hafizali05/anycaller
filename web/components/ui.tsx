@@ -418,6 +418,12 @@ export function Icon({
           <path d="M5 5l14 14M19 5L5 19" />
         </svg>
       );
+    case "menu":
+      return (
+        <svg {...p}>
+          <path d="M3 6h18M3 12h18M3 18h18" />
+        </svg>
+      );
     case "gear":
       return (
         <svg {...p}>
