@@ -7,6 +7,29 @@
 
 **Last updated:** 2026-05-24
 
+## Resume from here (2026-05-25)
+
+Everything that doesn't need Twilio/OpenAI is **built, deployed, and live on AWS**:
+- Frontend (Amplify): <https://main.d3ctz0i36mpyeq.amplifyapp.com>
+- Backend (Function URL): `https://iklpyva6hw7lh2nyewrm5qkzie0exqes.lambda-url.eu-west-2.on.aws/`
+- CI auto-deploys server on push to `main` (deployer role ARN already in the workflow).
+
+Last user-facing change: sidebar + Live-feed pixel port from `designs/app.jsx`
+(commit `e6cb57e`). User was mid-way through verifying the live UI matches the
+design upload they sent — pick up by asking which screen they want to retest
+next, OR by pulling the next item below.
+
+**Open items (no Twilio/OpenAI needed):**
+1. User retest of the sidebar overhaul + Live feed header (commit `e6cb57e`).
+2. Wire the credits card to real Stripe billing (mock for now).
+3. Replace placeholder `10m free` with a real per-workspace minute counter
+   (would need a `/usage/me` endpoint + DDB summary).
+4. Multi-user workspaces (PRD non-goal for MVP — defer).
+
+**Blocked (needs user-supplied credentials):**
+- Voice-AI tech spike (PRD §8 #1) → Python worker + Twilio + OpenAI/Retell.
+- Real call dialing + worker → unblocks Live feed real data.
+
 ## TL;DR for a fresh session
 
 1. Read `PRD.md` at the repo root (~330 lines — the full product spec).
@@ -119,6 +142,13 @@ work, in rough order:
 | `9d2e120` | **Auth slice end-to-end** — SAM template (Cognito + DDB + Function URL + Lambda), Python FastAPI backend (`/healthz`, `/workspaces/me`), Next.js `/login` + `/signup` + `/dashboard` pages. Mirrors hafiz.in conventions. | merged on `main` |
 | `78bac36` | **Contacts slice end-to-end** — Python `/contacts` routes (list, create, bulk, patch, delete) with E.164 normalization + dedupe; Next.js `/contacts` list, `/contacts/new` manual add, `/contacts/import` CSV upload + column mapping + preview. AppShell sidebar. | merged on `main` |
 | `594c93b`, `dbe4662`, `054a183` | **Campaigns slice end-to-end** — Python `/campaigns` routes (CRUD + `/launch`) with audience snapshot from contact tags; Next.js `/campaigns` list and `/campaigns/new` 3-step wizard (Brief → Audience → Launch) with persona/voice/pace, schedule, review card. Launch flips draft → scheduled (dialing pending voice-AI spike). | merged on `main` |
+| `b963a05` | **CSV export of campaign results** — PRD §6.4. `GET /campaigns/{id}/export.csv` (streaming) + frontend button on the Live feed page. | merged on `main` |
+| `0a85343` | server/Dockerfile: --trusted-host pip flags so the container build works behind the sandbox proxy's self-signed CA. | merged on `main` |
+| `6db3cbd`, `8a2af50`, `fa4287b` | CORS multi-origin overhaul — `AllowedOrigins` (CommaDelimitedList), FastAPI middleware owns CORS, Function URL Cors block dropped to avoid duplicate `Access-Control-Allow-Origin`. `.aws-sam/` added to .gitignore. | merged on `main` |
+| `73d6fb8` | CI deployer role bootstrapped on AWS (account `172105528913`, reuses existing GitHub OIDC provider). Workflow's `role-to-assume` placeholder replaced with the real ARN — pushes to `main` touching server/template/samconfig now auto-deploy. | merged on `main` |
+| `7faffa6` | STATUS: live URLs (Amplify + Function URL + Cognito IDs). | merged on `main` |
+| `dcfd673` | Landing-page nav anchors wired (How it works / Use cases / Trust / Pricing scroll to their sections, smooth scroll + scroll-margin offset). Removed Changelog (nothing to link to). | merged on `main` |
+| `e6cb57e` | **Sidebar + Live-feed pixel port** — `components/AppShell.tsx` matches `designs/app.jsx` Sidebar 1:1: `+ New call campaign` CTA, NOW/LIBRARY/ACCOUNT sections, live-pulse + counts, credits card. Live feed page title is now `Live feed` with campaign name + status as the eyebrow + `started Xm ago` clock. New `/numbers` placeholder route ("Numbers & voices"). | merged on `main` |
 | `159accf` | **Run slice** — calls backend (`/calls` GET/POST/PATCH, GET by campaignId); Live feed at `/campaigns/[id]` with 5s polling, counters strip, outcomes ribbon; Call detail at `/calls/[id]` with transcript, recording strip, extracted fields. | merged on `main` |
 | `eb6e65f` | **Briefs slice** — `/briefs` CRUD + `/briefs/{id}/bump-usage`; library card grid at `/briefs`; shared editor at `/briefs/new` and `/briefs/[id]`. Sidebar adds Briefs + Settings entries. | merged on `main` |
 | `3886305` | **Compliance + settings slice** — AttestModal at launch (PRD §6.6 self-cert, 30-day re-prompt) stored in localStorage; `/settings` page with profile + workspace + last attestation + connection vars + plan placeholder. | merged on `main` |
