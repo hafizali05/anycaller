@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
+import { AttestModal, loadAttestation } from "@/components/AttestModal";
 import { Button, Eyebrow, Icon, Tag } from "@/components/ui";
 import {
   createCampaign,
@@ -46,6 +47,7 @@ export default function NewCampaignPage() {
   const [scheduleMode, setScheduleMode] = useState<"now" | "scheduled">("now");
   const [scheduledAt, setScheduledAt] = useState<string>("");
   const [savedCampaign, setSavedCampaign] = useState<Campaign | null>(null);
+  const [attestOpen, setAttestOpen] = useState(false);
 
   // Load contacts when we enter the audience step (or earlier — we need the tag list).
   useEffect(() => {
@@ -126,12 +128,25 @@ export default function NewCampaignPage() {
   }
 
   async function launch() {
+    // PRD §6.6 — require attestation before launch. Re-prompt every 30 days.
+    const prior = loadAttestation();
+    const fresh =
+      prior &&
+      Date.now() - new Date(prior.acknowledgedAt).getTime() < 30 * 24 * 60 * 60 * 1000;
+    if (!fresh) {
+      setAttestOpen(true);
+      return;
+    }
+    await doLaunch();
+  }
+
+  async function doLaunch() {
     setSaving(true);
     setError("");
     try {
       const c = await persist();
       const launched = await launchCampaign(c.id);
-      router.push(`/campaigns?launched=${launched.id}`);
+      router.push(`/campaigns/${launched.id}`);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -291,6 +306,15 @@ export default function NewCampaignPage() {
           </div>
         </div>
       </div>
+
+      <AttestModal
+        open={attestOpen}
+        onClose={() => setAttestOpen(false)}
+        onAttest={() => {
+          setAttestOpen(false);
+          void doLaunch();
+        }}
+      />
     </AppShell>
   );
 }
