@@ -1777,11 +1777,91 @@ export default function HomePage() {
     >
       <HomeNav />
       <HomeHero />
+      <Customers />
       <UseCases />
       <HowItWorks />
       <Pricing />
       <FinalCTA />
       <HomeFooter />
     </div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────────
+ * Customers — "Trusted by" strip. Favicon via Google's public service +
+ * wordmark text + link. If/when proper brand assets are dropped into
+ * web/public/customers/, swap the src on each <img>.
+ * ──────────────────────────────────────────────────────────────────── */
+const CUSTOMERS = [
+  { name: "Bookingwhizz", domain: "bookingwhizz.com" },
+  { name: "Blissmart",    domain: "blissmart.com" },
+  { name: "Simply Park",  domain: "simplypark.com" },
+];
+
+function Customers() {
+  return (
+    <section
+      className="home-customers"
+      style={{
+        padding: "48px 56px",
+        background: "var(--paper)",
+        borderBottom: "1px solid var(--border)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 22,
+      }}
+    >
+      <Eyebrow>Trusted by</Eyebrow>
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "center",
+          alignItems: "center",
+          gap: 36,
+        }}
+      >
+        {CUSTOMERS.map((c) => (
+          <a
+            key={c.domain}
+            href={`https://${c.domain}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 10,
+              padding: "8px 14px",
+              borderRadius: 10,
+              textDecoration: "none",
+              color: "var(--ink-2)",
+              transition: "background .15s, color .15s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "var(--paper-2)";
+              e.currentTarget.style.color = "var(--ink)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "transparent";
+              e.currentTarget.style.color = "var(--ink-2)";
+            }}
+          >
+            {/* Favicon via Google's public service. eslint-disable: this is
+                an intentional <img>, not next/image — keeps the src dynamic
+                and avoids configuring remote-image patterns. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={`https://www.google.com/s2/favicons?domain=${c.domain}&sz=64`}
+              alt=""
+              width={20}
+              height={20}
+              style={{ borderRadius: 4 }}
+            />
+            <span style={{ fontSize: 15, fontWeight: 500, letterSpacing: "-0.005em" }}>{c.name}</span>
+          </a>
+        ))}
+      </div>
+    </section>
   );
 }
