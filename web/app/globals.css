@@ -59,6 +59,11 @@
 
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+/* Anchored sections sit behind the 72px sticky nav unless we offset
+   the scroll target. Applies to anything with an id, harmless elsewhere. */
+section[id] { scroll-margin-top: 80px; }
 
 body {
   font-family: var(--font-ui);

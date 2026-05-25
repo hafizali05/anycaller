@@ -47,11 +47,10 @@ function HomeNav() {
       <div style={{ display: "flex", alignItems: "center", gap: 36 }}>
         <Wordmark size={20} live />
         <div style={{ display: "flex", gap: 4 }}>
-          <span style={link}>How it works</span>
-          <span style={link}>Use cases</span>
-          <span style={link}>Trust</span>
-          <span style={link}>Pricing</span>
-          <span style={link}>Changelog</span>
+          <a href="#how-it-works" style={link}>How it works</a>
+          <a href="#use-cases" style={link}>Use cases</a>
+          <a href="#trust" style={link}>Trust</a>
+          <a href="#pricing" style={link}>Pricing</a>
         </div>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -876,6 +875,7 @@ const USE_CASES = [
 function UseCases() {
   return (
     <section
+      id="use-cases"
       style={{
         padding: "96px 56px",
         background: "var(--paper-2)",
@@ -1048,7 +1048,7 @@ function StepCard({
 
 function HowItWorks() {
   return (
-    <section style={{ padding: "96px 56px", background: "var(--paper)" }}>
+    <section id="how-it-works" style={{ padding: "96px 56px", background: "var(--paper)" }}>
       <div style={{ marginBottom: 48 }}>
         <Eyebrow>04 · How it works</Eyebrow>
         <Display size={56} max={780}>
@@ -1362,7 +1362,7 @@ function LiveRibbon() {
  * ──────────────────────────────────────────────────────────────────── */
 function TrustStrip() {
   return (
-    <section style={{ padding: "64px 56px", background: "var(--paper)" }}>
+    <section id="trust" style={{ padding: "64px 56px", background: "var(--paper)" }}>
       <div style={{ display: "grid", gridTemplateColumns: "0.7fr 1.3fr", gap: 56, alignItems: "start" }}>
         <div>
           <Eyebrow>05 · Compliance is the default</Eyebrow>
@@ -1528,6 +1528,7 @@ function PriceCard({
 function Pricing() {
   return (
     <section
+      id="pricing"
       style={{
         padding: "96px 56px",
         background: "var(--paper-2)",
@@ -1704,11 +1705,10 @@ function HomeFooter() {
         </div>
         <div style={col}>
           <div style={head}>Product</div>
-          <span style={link}>How it works</span>
-          <span style={link}>Use cases</span>
-          <span style={link}>Pricing</span>
-          <span style={link}>Changelog</span>
-          <span style={link}>Status</span>
+          <a href="#how-it-works" style={link}>How it works</a>
+          <a href="#use-cases" style={link}>Use cases</a>
+          <a href="#pricing" style={link}>Pricing</a>
+          <a href="#trust" style={link}>Trust</a>
         </div>
         <div style={col}>
           <div style={head}>Resources</div>
