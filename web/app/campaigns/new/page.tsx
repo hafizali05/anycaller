@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { AttestModal, loadAttestation } from "@/components/AttestModal";
 import { Button, Eyebrow, Icon, Tag } from "@/components/ui";
 import {
   createCampaign,
+  getBrief,
   launchCampaign,
   listContacts,
   patchCampaign,
@@ -24,7 +25,17 @@ type Step = "brief" | "audience" | "launch";
 const SAMPLE_BRIEF = `I'm selling accounting software to small businesses in the US. Please call the business, confirm you're speaking with someone who handles their books, and ask: (1) whether they currently use any accounting software, (2) which one, (3) what they like and dislike about it, and (4) whether they'd be open to a 15-minute demo next week. Be friendly and don't push if they say no.`;
 
 export default function NewCampaignPage() {
+  return (
+    <Suspense fallback={null}>
+      <NewCampaignInner />
+    </Suspense>
+  );
+}
+
+function NewCampaignInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const fromBriefId = searchParams.get("fromBrief");
   const [step, setStep] = useState<Step>("brief");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -36,6 +47,24 @@ export default function NewCampaignPage() {
   const [personaId, setPersonaId] = useState("formal");
   const [voiceId, setVoiceId] = useState("sage");
   const [pace, setPace] = useState<Pace>("natural");
+
+  // Prefill from a saved brief if ?fromBrief=<id>
+  useEffect(() => {
+    if (!fromBriefId) return;
+    (async () => {
+      try {
+        const b = await getBrief(fromBriefId);
+        setName(b.name);
+        setType(b.type);
+        setBrief(b.brief);
+        setPersonaId(b.persona);
+        setVoiceId(b.voice);
+        setPace(b.pace);
+      } catch (e: unknown) {
+        setError(e instanceof Error ? e.message : String(e));
+      }
+    })();
+  }, [fromBriefId]);
 
   // Audience
   const [contacts, setContacts] = useState<Contact[]>([]);

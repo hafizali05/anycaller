@@ -233,6 +233,47 @@ def delete_campaign(campaign_id: str, user: CognitoUser) -> None:
     table.delete_item(Key={"pk": _ws_pk(workspace.id), "sk": _campaign_sk(campaign_id)})
 
 
+def _transition(workspace_id: str, campaign_id: str, allowed_from: set[str], new_status: CampaignStatus) -> Campaign:
+    key = {"pk": _ws_pk(workspace_id), "sk": _campaign_sk(campaign_id)}
+    item = table.get_item(Key=key).get("Item")
+    if not item:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Campaign not found")
+    if item.get("status") not in allowed_from:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            f"Can't transition from {item.get('status')!r} to {new_status!r}",
+        )
+    now = datetime.now(timezone.utc).isoformat()
+    resp = table.update_item(
+        Key=key,
+        UpdateExpression="SET #status = :s, updatedAt = :u",
+        ExpressionAttributeNames={"#status": "status"},
+        ExpressionAttributeValues={":s": new_status, ":u": now},
+        ReturnValues="ALL_NEW",
+    )
+    return _item_to_campaign(resp["Attributes"])
+
+
+@router.post("/{campaign_id}/pause", response_model=Campaign)
+def pause_campaign(campaign_id: str, user: CognitoUser) -> Campaign:
+    workspace = _get_or_create_workspace(user["sub"], user.get("email"))
+    return _transition(workspace.id, campaign_id, {"running", "scheduled"}, "paused")
+
+
+@router.post("/{campaign_id}/resume", response_model=Campaign)
+def resume_campaign(campaign_id: str, user: CognitoUser) -> Campaign:
+    workspace = _get_or_create_workspace(user["sub"], user.get("email"))
+    return _transition(workspace.id, campaign_id, {"paused"}, "running")
+
+
+@router.post("/{campaign_id}/stop", response_model=Campaign)
+def stop_campaign(campaign_id: str, user: CognitoUser) -> Campaign:
+    """Hard stop. Marks completed; the orchestrator (when it exists)
+    drains in-flight calls."""
+    workspace = _get_or_create_workspace(user["sub"], user.get("email"))
+    return _transition(workspace.id, campaign_id, {"running", "scheduled", "paused"}, "completed")
+
+
 @router.post("/{campaign_id}/launch", response_model=Campaign)
 def launch_campaign(campaign_id: str, user: CognitoUser) -> Campaign:
     """Flip status draft → scheduled and snapshot the audience size.

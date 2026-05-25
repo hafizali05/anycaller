@@ -184,6 +184,21 @@ export async function launchCampaign(id: string): Promise<Campaign> {
   return (await res.json()) as Campaign;
 }
 
+export async function pauseCampaign(id: string): Promise<Campaign> {
+  const res = await authedFetch(`/campaigns/${encodeURIComponent(id)}/pause`, { method: "POST" });
+  return (await res.json()) as Campaign;
+}
+
+export async function resumeCampaign(id: string): Promise<Campaign> {
+  const res = await authedFetch(`/campaigns/${encodeURIComponent(id)}/resume`, { method: "POST" });
+  return (await res.json()) as Campaign;
+}
+
+export async function stopCampaign(id: string): Promise<Campaign> {
+  const res = await authedFetch(`/campaigns/${encodeURIComponent(id)}/stop`, { method: "POST" });
+  return (await res.json()) as Campaign;
+}
+
 export type CallStatus = "queued" | "ringing" | "live" | "completed" | "voicemail" | "failed" | "optout";
 export type CallOutcome = "yes" | "maybe" | "no" | null;
 

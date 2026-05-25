@@ -9,7 +9,18 @@ import Link from "next/link";
 import { use, useEffect, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { Button, Icon, StaticWaveform, StatusPill, Waveform } from "@/components/ui";
-import { getCampaign, listCalls, listContacts, type Call, type Campaign, type CallStatus, type Contact } from "@/lib/api";
+import {
+  getCampaign,
+  listCalls,
+  listContacts,
+  pauseCampaign,
+  resumeCampaign,
+  stopCampaign,
+  type Call,
+  type Campaign,
+  type CallStatus,
+  type Contact,
+} from "@/lib/api";
 
 const POLL_MS = 5000;
 
@@ -57,7 +68,7 @@ export default function CampaignPage({ params }: { params: Promise<{ id: string 
   return (
     <AppShell>
       <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-        <Header campaign={campaign} loading={loading} />
+        <Header campaign={campaign} loading={loading} onUpdated={setCampaign} setError={setError} />
 
         {error && (
           <div
@@ -175,7 +186,26 @@ export default function CampaignPage({ params }: { params: Promise<{ id: string 
   );
 }
 
-function Header({ campaign, loading }: { campaign: Campaign | null; loading: boolean }) {
+function Header({
+  campaign,
+  loading,
+  onUpdated,
+  setError,
+}: {
+  campaign: Campaign | null;
+  loading: boolean;
+  onUpdated: (c: Campaign) => void;
+  setError: (s: string) => void;
+}) {
+  async function transition(fn: (id: string) => Promise<Campaign>) {
+    if (!campaign) return;
+    try {
+      onUpdated(await fn(campaign.id));
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : String(e));
+    }
+  }
+
   return (
     <div style={{ padding: "20px 28px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
       <div>
@@ -216,9 +246,28 @@ function Header({ campaign, loading }: { campaign: Campaign | null; loading: boo
             {campaign.contactCount} contacts
           </span>
         ) : null}
-        {campaign?.status === "running" && (
-          <Button variant="ghost" size="sm" icon={<Icon name="pause" size={11} color="var(--ink)" />}>
+        {(campaign?.status === "running" || campaign?.status === "scheduled") && (
+          <Button variant="ghost" size="sm" icon={<Icon name="pause" size={11} color="var(--ink)" />} onClick={() => transition(pauseCampaign)}>
             Pause
+          </Button>
+        )}
+        {campaign?.status === "paused" && (
+          <Button variant="ghost" size="sm" icon={<Icon name="play" size={11} color="var(--ink)" />} onClick={() => transition(resumeCampaign)}>
+            Resume
+          </Button>
+        )}
+        {(campaign?.status === "running" || campaign?.status === "paused" || campaign?.status === "scheduled") && (
+          <Button
+            variant="ghost"
+            size="sm"
+            icon={<Icon name="square" size={11} color="var(--accent-2)" />}
+            onClick={() => {
+              if (confirm("Stop this campaign? In-flight calls will finish, then the campaign is marked complete.")) {
+                void transition(stopCampaign);
+              }
+            }}
+          >
+            Stop
           </Button>
         )}
       </div>

@@ -174,6 +174,13 @@ export function BriefEditor({
             >
               {saving ? "Saving…" : "Save brief"}
             </Button>
+            {initial?.id && (
+              <Link href={`/campaigns/new?fromBrief=${encodeURIComponent(initial.id)}`} style={{ textDecoration: "none" }}>
+                <Button variant="ghost" size="lg" icon={<Icon name="phone" size={13} color="var(--ink)" />}>
+                  Start campaign from this brief
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </div>
