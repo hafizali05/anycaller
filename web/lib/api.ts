@@ -183,3 +183,47 @@ export async function launchCampaign(id: string): Promise<Campaign> {
   const res = await authedFetch(`/campaigns/${encodeURIComponent(id)}/launch`, { method: "POST" });
   return (await res.json()) as Campaign;
 }
+
+export type CallStatus = "queued" | "ringing" | "live" | "completed" | "voicemail" | "failed" | "optout";
+export type CallOutcome = "yes" | "maybe" | "no" | null;
+
+export interface TranscriptLine {
+  who: "ava" | "them";
+  t: string;
+  text: string;
+}
+
+export interface ExtractedField {
+  value: unknown;
+  confidence: number | null;
+}
+
+export interface Call {
+  id: string;
+  campaignId: string;
+  contactId: string;
+  status: CallStatus;
+  outcome: CallOutcome;
+  attempt: number;
+  durationSec: number | null;
+  startedAt: string | null;
+  endedAt: string | null;
+  transcript: TranscriptLine[];
+  extraction: Record<string, ExtractedField>;
+  recordingUrl: string | null;
+  sentiment: string | null;
+  snippet: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function listCalls(campaignId = ""): Promise<{ items: Call[] }> {
+  const qs = campaignId ? `?campaignId=${encodeURIComponent(campaignId)}` : "";
+  const res = await authedFetch(`/calls${qs}`);
+  return (await res.json()) as { items: Call[] };
+}
+
+export async function getCall(id: string): Promise<Call> {
+  const res = await authedFetch(`/calls/${encodeURIComponent(id)}`);
+  return (await res.json()) as Call;
+}
