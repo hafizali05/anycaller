@@ -286,14 +286,58 @@ implementing without a written plan for the slice.
 ## Resource reference
 
 - **GitHub repo:** `github.com/hafizali05/anycaller` (private; SSH remote)
-- **Live frontend:** <https://main.d3ctz0i36mpyeq.amplifyapp.com> (AWS Amplify Hosting, app `d3ctz0i36mpyeq`)
+- **Domain:** `call2reach.com` (Route 53, registered 2026-05-25 to Segment Intelligence Limited, 1yr, auto-renew OFF, expires 2027-05-25). WHOIS privacy on.
+- **Live frontend:** <https://call2reach.com> and <https://www.call2reach.com> (AWS Amplify Hosting, app `d3ctz0i36mpyeq`; original Amplify URL `main.d3ctz0i36mpyeq.amplifyapp.com` still works)
 - **Live backend (Function URL):** `https://iklpyva6hw7lh2nyewrm5qkzie0exqes.lambda-url.eu-west-2.on.aws/`
 - **Cognito User Pool:** `eu-west-2_Qkl0aTzBv` (app client `4c3cmpmrdhl5tmtmtcsk8sgde1`)
 - **DynamoDB table:** `anycaller-data` (PAY_PER_REQUEST, PITR on, SSE)
+- **Route 53 hosted zone:** `Z00141172QRWNYHPU5Z4` for `call2reach.com`
 - **SAM stack:** `anycaller` (eu-west-2)
-- **AWS account:** `172105528913`
+- **AWS account:** `172105528913` (billing entity: Segment Intelligence Limited, GB, not VAT-registered)
 - **CI deployer role:** `arn:aws:iam::172105528913:role/github-actions-anycaller-deployer` (auto-deploys server on push to `main` touching server/template/samconfig)
-- **AWS region:** `eu-west-2` (London) — matches hafiz.in primary region
+- **AWS region:** `eu-west-2` (London) for app + `eu-west-1` (Ireland) for SES inbound (eu-west-2 doesn't host SES receive)
+
+## Email infrastructure (call2reach.com)
+
+Inbound forwarder + outbound send-as for the domain. All set up in
+**eu-west-1** (SES inbound is not available in eu-west-2). Architecture:
+
+```
+  external sender → MX call2reach.com → SES eu-west-1 receipt rule (catch-all)
+                                        ├─ S3 (s3://call2reach-inbound-email, 90d expiry)
+                                        └─ Lambda call2reach-email-forwarder
+                                                        │
+                                                        └─→ SES SendRawEmail → hafizdidarali@gmail.com
+                                                        (From rewritten, original sender in Reply-To)
+
+  you in Gmail (Send mail as) ──SMTP──→ SES eu-west-1 SMTP (email-smtp.eu-west-1.amazonaws.com:587)
+                                                        │
+                                                        └─→ recipient (from: <you>@call2reach.com)
+```
+
+Resources created via API (not in CFN — one-time setup):
+- SES domain identity `call2reach.com` in `eu-west-1` (DKIM verified)
+- S3 bucket `call2reach-inbound-email` (90-day lifecycle expiry on raw mail)
+- IAM role `call2reach-email-forwarder-role` (S3 GetObject + SES Send)
+- Lambda `call2reach-email-forwarder` (python 3.12, `/tmp/forwarder/handler.py` in this sandbox)
+- SES receipt rule set `call2reach-default` with `catch-all` rule (active)
+- IAM user `call2reach-smtp` with SES Send policy + generated access key
+  (SMTP creds were printed to the user once during setup; rotate by
+  deleting the existing key and rerunning the SMTP credential block)
+
+DNS records in Route 53 hosted zone:
+- `_amazonses.call2reach.com.` TXT (SES domain verification)
+- 3× `<token>._domainkey.call2reach.com.` CNAME (DKIM)
+- `call2reach.com.` MX → `10 inbound-smtp.eu-west-1.amazonaws.com`
+- `call2reach.com.` TXT → `v=spf1 include:amazonses.com -all`
+- `_dmarc.call2reach.com.` TXT → `v=DMARC1; p=none; rua=mailto:hafizdidarali@gmail.com`
+- Amplify: cert validation CNAME, apex ALIAS → CloudFront, `www` CNAME
+
+Sandbox status: **SES production access request submitted** on 2026-05-25
+via `sesv2.put_account_details(ProductionAccessEnabled=True)`. While
+sandboxed, SES can only send to verified addresses — `hafizdidarali@gmail.com`
+was queued for verification so inbound forwarding works immediately;
+prod approval (24h SLA) unblocks senders from arbitrary domains.
 - **Frontend stack:** Next.js 16 App Router (matches hafiz.in)
 - **Auth:** Cognito (pool TBD — new pool for this project, not reusing the
   `eu-west-2_pFxTvhYdw` hafiz.in pool, because workspaces here are
