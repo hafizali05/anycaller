@@ -256,7 +256,13 @@ implementing without a written plan for the slice.
 ## Resource reference
 
 - **GitHub repo:** `github.com/hafizali05/anycaller` (private; SSH remote)
-- **Live URL:** TBD (no deploys yet)
+- **Live frontend:** <https://main.d3ctz0i36mpyeq.amplifyapp.com> (AWS Amplify Hosting, app `d3ctz0i36mpyeq`)
+- **Live backend (Function URL):** `https://iklpyva6hw7lh2nyewrm5qkzie0exqes.lambda-url.eu-west-2.on.aws/`
+- **Cognito User Pool:** `eu-west-2_Qkl0aTzBv` (app client `4c3cmpmrdhl5tmtmtcsk8sgde1`)
+- **DynamoDB table:** `anycaller-data` (PAY_PER_REQUEST, PITR on, SSE)
+- **SAM stack:** `anycaller` (eu-west-2)
+- **AWS account:** `172105528913`
+- **CI deployer role:** `arn:aws:iam::172105528913:role/github-actions-anycaller-deployer` (auto-deploys server on push to `main` touching server/template/samconfig)
 - **AWS region:** `eu-west-2` (London) — matches hafiz.in primary region
 - **Frontend stack:** Next.js 16 App Router (matches hafiz.in)
 - **Auth:** Cognito (pool TBD — new pool for this project, not reusing the
