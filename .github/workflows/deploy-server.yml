@@ -1,0 +1,98 @@
+# Deploy the anycaller backend (SAM stack) on push to main.
+# Mirrors hafiz.in/.github/workflows/deploy-server.yml.
+#
+# Prerequisite (one-time, manual): apply infra/bootstrap.yaml in your
+# AWS account to create the deployer role, then put the role ARN in the
+# `role-to-assume` field below (replace the placeholder ACCOUNT_ID).
+
+name: Deploy anycaller server
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - server/**
+      - template.yaml
+      - samconfig.toml
+      - .github/workflows/deploy-server.yml
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-server
+  cancel-in-progress: false
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: eu-west-2
+      SAM_STACK: anycaller
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          # Replace ACCOUNT_ID below with the AWS account ID where the
+          # deployer role was bootstrapped (infra/bootstrap.yaml).
+          role-to-assume: arn:aws:iam::ACCOUNT_ID:role/github-actions-anycaller-deployer
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+
+      # ECR Public auth always lives in us-east-1.
+      - name: Login to public ECR
+        run: |
+          aws ecr-public get-login-password --region us-east-1 \
+            | docker login --username AWS --password-stdin public.ecr.aws
+
+      - name: SAM build
+        run: sam build
+
+      - name: SAM deploy
+        run: |
+          sam deploy \
+            --stack-name "$SAM_STACK" \
+            --region "$AWS_REGION" \
+            --capabilities CAPABILITY_IAM \
+            --resolve-s3 \
+            --resolve-image-repos \
+            --no-confirm-changeset \
+            --no-fail-on-empty-changeset \
+            --no-disable-rollback
+
+      - name: Capture stack outputs
+        id: outputs
+        run: |
+          FN_URL=$(aws cloudformation describe-stacks \
+            --stack-name "$SAM_STACK" \
+            --region "$AWS_REGION" \
+            --query "Stacks[0].Outputs[?OutputKey=='FunctionUrl'].OutputValue" \
+            --output text)
+          POOL=$(aws cloudformation describe-stacks \
+            --stack-name "$SAM_STACK" \
+            --region "$AWS_REGION" \
+            --query "Stacks[0].Outputs[?OutputKey=='UserPoolId'].OutputValue" \
+            --output text)
+          CLIENT=$(aws cloudformation describe-stacks \
+            --stack-name "$SAM_STACK" \
+            --region "$AWS_REGION" \
+            --query "Stacks[0].Outputs[?OutputKey=='UserPoolClientId'].OutputValue" \
+            --output text)
+          {
+            echo "## anycaller server deployed"
+            echo ""
+            echo "**Function URL:** \`$FN_URL\`"
+            echo "**Cognito pool:** \`$POOL\`"
+            echo "**App client:** \`$CLIENT\`"
+            echo ""
+            echo "Set these as NEXT_PUBLIC_* env vars in Amplify."
+            echo ""
+            echo "Smoke test: \`curl ${FN_URL}healthz\`"
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,66 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  One-time bootstrap for GitHub Actions → AWS deploys of anycaller.
+  Creates the GitHub OIDC identity provider (if not already in the
+  account) and a deployer role assumable only by this repo's main-branch
+  workflows. Apply once with:
+    aws cloudformation deploy \
+      --stack-name anycaller-deployer-bootstrap \
+      --template-file infra/bootstrap.yaml \
+      --capabilities CAPABILITY_NAMED_IAM \
+      --parameter-overrides GitHubOrg=hafizali05 GitHubRepo=anycaller \
+      --region eu-west-2
+  Then put the DeployerRoleArn output into the GitHub Actions workflow.
+
+Parameters:
+  GitHubOrg:
+    Type: String
+    Default: hafizali05
+  GitHubRepo:
+    Type: String
+    Default: anycaller
+  AllowedBranch:
+    Type: String
+    Default: main
+    Description: Only workflows running on this branch can assume the deployer role.
+
+Resources:
+  # If you already created the OIDC provider for another repo (e.g.
+  # hafiz.in's bootstrap), this resource will fail with "EntityAlreadyExists".
+  # In that case, comment this block out and reuse the existing provider.
+  GitHubOIDCProvider:
+    Type: AWS::IAM::OIDCProvider
+    Properties:
+      Url: https://token.actions.githubusercontent.com
+      ClientIdList:
+        - sts.amazonaws.com
+      ThumbprintList:
+        - 6938fd4d98bab03faadb97b34396831e3780aea1
+
+  DeployerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: github-actions-anycaller-deployer
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !GetAtt GitHubOIDCProvider.Arn
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                "token.actions.githubusercontent.com:aud": sts.amazonaws.com
+              StringLike:
+                "token.actions.githubusercontent.com:sub": !Sub "repo:${GitHubOrg}/${GitHubRepo}:ref:refs/heads/${AllowedBranch}"
+      # AdministratorAccess for v1 (matches hafiz.in pattern). Scope down
+      # once the SAM stack stops adding new resource types.
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
+
+Outputs:
+  DeployerRoleArn:
+    Description: ARN to put into the GitHub Actions workflow as role-to-assume.
+    Value: !GetAtt DeployerRole.Arn
+  OIDCProviderArn:
+    Value: !Ref GitHubOIDCProvider
