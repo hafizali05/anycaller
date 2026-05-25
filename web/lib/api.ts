@@ -227,3 +227,52 @@ export async function getCall(id: string): Promise<Call> {
   const res = await authedFetch(`/calls/${encodeURIComponent(id)}`);
   return (await res.json()) as Call;
 }
+
+export interface Brief {
+  id: string;
+  name: string;
+  type: CampaignType;
+  brief: string;
+  persona: string;
+  voice: string;
+  pace: Pace;
+  usageCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BriefIn {
+  name: string;
+  type?: CampaignType;
+  brief?: string;
+  persona?: string;
+  voice?: string;
+  pace?: Pace;
+}
+
+export async function listBriefs(): Promise<{ items: Brief[] }> {
+  const res = await authedFetch("/briefs");
+  return (await res.json()) as { items: Brief[] };
+}
+
+export async function getBrief(id: string): Promise<Brief> {
+  const res = await authedFetch(`/briefs/${encodeURIComponent(id)}`);
+  return (await res.json()) as Brief;
+}
+
+export async function createBrief(input: BriefIn): Promise<Brief> {
+  const res = await authedFetch("/briefs", { method: "POST", body: JSON.stringify(input) });
+  return (await res.json()) as Brief;
+}
+
+export async function patchBrief(id: string, patch: Partial<BriefIn>): Promise<Brief> {
+  const res = await authedFetch(`/briefs/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify(patch),
+  });
+  return (await res.json()) as Brief;
+}
+
+export async function deleteBrief(id: string): Promise<void> {
+  await authedFetch(`/briefs/${encodeURIComponent(id)}`, { method: "DELETE" });
+}

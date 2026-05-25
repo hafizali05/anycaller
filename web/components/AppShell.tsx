@@ -12,7 +12,7 @@ import { Icon, Wordmark } from "@/components/ui";
 import { currentSession, signOut } from "@/lib/cognito";
 
 interface NavItem {
-  href: "/dashboard" | "/contacts" | "/campaigns";
+  href: "/dashboard" | "/contacts" | "/campaigns" | "/briefs" | "/settings";
   label: string;
   icon: string;
 }
@@ -20,7 +20,9 @@ interface NavItem {
 const NAV: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: "feed" },
   { href: "/campaigns", label: "Campaigns", icon: "dial" },
+  { href: "/briefs", label: "Briefs", icon: "brief" },
   { href: "/contacts", label: "Contacts", icon: "list" },
+  { href: "/settings", label: "Settings", icon: "gear" },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
