@@ -23,20 +23,15 @@ Parameters:
     Type: String
     Default: main
     Description: Only workflows running on this branch can assume the deployer role.
+  OIDCProviderArn:
+    Type: String
+    Default: arn:aws:iam::172105528913:oidc-provider/token.actions.githubusercontent.com
+    Description: >
+      Existing GitHub OIDC provider ARN (one per account). If you don't
+      have one yet, create it via the AWS console or with the
+      AWS::IAM::OIDCProvider resource (see the commented block below).
 
 Resources:
-  # If you already created the OIDC provider for another repo (e.g.
-  # hafiz.in's bootstrap), this resource will fail with "EntityAlreadyExists".
-  # In that case, comment this block out and reuse the existing provider.
-  GitHubOIDCProvider:
-    Type: AWS::IAM::OIDCProvider
-    Properties:
-      Url: https://token.actions.githubusercontent.com
-      ClientIdList:
-        - sts.amazonaws.com
-      ThumbprintList:
-        - 6938fd4d98bab03faadb97b34396831e3780aea1
-
   DeployerRole:
     Type: AWS::IAM::Role
     Properties:
@@ -46,7 +41,7 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              Federated: !GetAtt GitHubOIDCProvider.Arn
+              Federated: !Ref OIDCProviderArn
             Action: sts:AssumeRoleWithWebIdentity
             Condition:
               StringEquals:
@@ -62,5 +57,3 @@ Outputs:
   DeployerRoleArn:
     Description: ARN to put into the GitHub Actions workflow as role-to-assume.
     Value: !GetAtt DeployerRole.Arn
-  OIDCProviderArn:
-    Value: !Ref GitHubOIDCProvider

@@ -37,9 +37,7 @@ jobs:
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          # Replace ACCOUNT_ID below with the AWS account ID where the
-          # deployer role was bootstrapped (infra/bootstrap.yaml).
-          role-to-assume: arn:aws:iam::ACCOUNT_ID:role/github-actions-anycaller-deployer
+          role-to-assume: arn:aws:iam::172105528913:role/github-actions-anycaller-deployer
           aws-region: ${{ env.AWS_REGION }}
 
       - uses: aws-actions/setup-sam@v2
