@@ -886,7 +886,7 @@ function UseCases() {
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 40 }}>
         <div>
-          <Eyebrow>03 · Use cases</Eyebrow>
+          <Eyebrow>01 · Use cases</Eyebrow>
           <Display size={56} max={780}>
             Not a sales dialer. Not a support bot.
             <span style={{ color: "var(--ink-3)" }}> Whatever you can describe in a paragraph.</span>
@@ -1051,7 +1051,7 @@ function HowItWorks() {
   return (
     <section id="how-it-works" style={{ padding: "96px 56px", background: "var(--paper)" }}>
       <div style={{ marginBottom: 48 }}>
-        <Eyebrow>04 · How it works</Eyebrow>
+        <Eyebrow>02 · How it works</Eyebrow>
         <Display size={56} max={780}>
           Three steps to your first call.
         </Display>
@@ -1538,7 +1538,7 @@ function Pricing() {
       }}
     >
       <div style={{ marginBottom: 44 }}>
-        <Eyebrow>06 · Pricing</Eyebrow>
+        <Eyebrow>03 · Pricing</Eyebrow>
         <Display size={56} max={780}>
           Prepaid minutes.
           <span style={{ color: "var(--ink-3)" }}> No surprise invoice on Monday morning.</span>
@@ -1758,6 +1758,10 @@ function HomeFooter() {
 /* ────────────────────────────────────────────────────────────────────
  * Composed landing page
  * ──────────────────────────────────────────────────────────────────── */
+/* Tightened home — Hero → Use cases → How it works → Pricing → CTA → Footer.
+ * Cut sections (TransformationSection, WhatYouGet, LiveRibbon, TrustStrip)
+ * are still defined below but no longer rendered; easy to re-add if a
+ * future variant needs them. */
 export default function HomePage() {
   return (
     <div
@@ -1773,12 +1777,8 @@ export default function HomePage() {
     >
       <HomeNav />
       <HomeHero />
-      <TransformationSection />
-      <WhatYouGet />
       <UseCases />
       <HowItWorks />
-      <LiveRibbon />
-      <TrustStrip />
       <Pricing />
       <FinalCTA />
       <HomeFooter />
