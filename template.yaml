@@ -110,6 +110,9 @@ Resources:
       PackageType: Image
       LoggingConfig:
         LogGroup: !Ref ApiFnLogGroup
+        LogFormat: JSON
+        ApplicationLogLevel: WARN
+        SystemLogLevel: WARN
       Environment:
         Variables:
           COGNITO_USER_POOL_ID: !Ref UserPool
@@ -170,6 +173,9 @@ Resources:
       PackageType: Zip
       LoggingConfig:
         LogGroup: !Ref VoiceSmaFnLogGroup
+        LogFormat: JSON
+        ApplicationLogLevel: WARN
+        SystemLogLevel: WARN
       Policies:
         - Statement:
             - Effect: Allow
