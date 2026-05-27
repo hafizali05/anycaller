@@ -144,7 +144,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: /aws/lambda/anycaller-api-fn
-      RetentionInDays: 14
+      RetentionInDays: 1
 
   # ──────────────────────────────────────────────────────────────────
   # Voice — SIP Media Application (SMA) Lambda for Chime SDK PSTN
@@ -195,7 +195,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: /aws/lambda/anycaller-voice-sma-fn
-      RetentionInDays: 14
+      RetentionInDays: 1
 
   # Allow the Chime SDK Voice service to invoke this Lambda. Without
   # this permission Chime will get AccessDenied when the SIP Media
