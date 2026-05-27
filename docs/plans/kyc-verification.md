@@ -27,16 +27,28 @@ Two checkpoints. Nothing else.
 
 ### 3.1 At signup — invisible
 
-Runs inside a new **Cognito PreSignUp Lambda trigger**. User sees only
-the existing signup form.
+Two pieces, neither user-visible:
 
-1. Verify a **Cloudflare Turnstile** token (hidden field on the signup
-   form). Reject on fail.
-2. Reject the email if its domain is on the bundled
-   `disposable-email-domains` list, or if its domain has no MX record.
+**(a) Bot challenge — AWS WAF `Challenge` action attached to the
+Cognito user pool.** Silent JS browser-fingerprint challenge — direct
+equivalent to Cloudflare Turnstile, but native to AWS and applied at
+the user-pool layer, so it requires zero frontend code and no
+verification step inside our Lambda. Web ACL lives in `eu-west-2`,
+associated with user pool `eu-west-2_Qkl0aTzBv`. Cost: ~$6/mo flat at
+MVP volume (web ACL $5 + 1 rule $1 + $0.20/1k challenges).
+
+**(b) Email-domain checks — Cognito PreSignUp Lambda trigger.** Rejects
+the signup if the email domain is on the bundled
+`disposable-email-domains` list, or if its domain has no MX record.
 
 That's the whole signup gate. Cognito's existing email-code verification
 already runs after.
+
+Rejected alternatives: Cloudflare Turnstile (free, but adds a Cloudflare
+account dependency, a `<script>` tag, an env var, and ~10 lines of
+token-verify code — non-trivially more code than WAF for $6/mo
+saved). WAF ACFP managed rule group ($10/mo + per-request, ML-based —
+overkill at MVP).
 
 ### 3.2 Before first launch *or* first top-up — Stripe SetupIntent + 3DS
 
@@ -73,18 +85,22 @@ intercepts the action when the card is missing.
 
 ## 5. Code touch-points
 
-- `web/app/signup/page.tsx` — add Turnstile widget + hidden token field.
+- `web/app/signup/page.tsx` — no changes. WAF Challenge is transparent.
 - `web/components/CardGate.tsx` — **new**, mirrors `AttestModal`.
 - `web/lib/kyc.ts` — **new**, thin API client.
 - `server/app/cognito_triggers/pre_signup.py` — **new** Lambda handler:
-  Turnstile verify + disposable-email + MX check.
+  disposable-email + MX check only.
 - `server/app/routes/kyc.py` — **new**, one endpoint (`/kyc/card/setup-intent`).
 - `server/app/routes/webhooks_stripe.py` — extend with
   `setup_intent.succeeded` handler.
 - `server/app/auth.py` — add `require_card_verified` dependency next
   to the existing `CognitoUser`.
-- `template.yaml` — Cognito `LambdaConfig.PreSignUp`, new Lambda, env
-  vars `TURNSTILE_SECRET`, `STRIPE_SECRET`, `STRIPE_WEBHOOK_SECRET`.
+- `template.yaml` —
+  - Cognito `LambdaConfig.PreSignUp` + new Lambda.
+  - `AWS::WAFv2::WebACL` (scope `REGIONAL`, default `Allow`, single rule
+    issuing `Challenge` on the Cognito `SignUp` operation) +
+    `AWS::WAFv2::WebACLAssociation` targeting the user pool ARN.
+  - Env vars `STRIPE_SECRET`, `STRIPE_WEBHOOK_SECRET`.
 
 No new DDB table. New PK prefix: `KYC#`.
 
@@ -122,11 +138,12 @@ back in without re-architecting.
 
 Two PRs.
 
-1. **Signup gate** — Turnstile + disposable block + MX + PreSignUp
-   Lambda + audit log. ~1 day. Ship first.
+1. **Signup gate** — WAF web ACL + Challenge rule + user-pool
+   association + PreSignUp Lambda for disposable/MX check + audit
+   log. ~1 day. Ship first.
 2. **Card gate** — SetupIntent + 3DS + Radar webhook +
    `<CardGate />` + `require_card_verified`. ~1 day. Ships alongside
    the Stripe billing slice.
 
-Total: ~2 working days. No third-party identity vendor signup needed
-beyond accounts you'll already have (Stripe, Cloudflare).
+Total: ~2 working days. No third-party identity vendor signup needed —
+WAF + Cognito + Stripe are accounts we already have.
