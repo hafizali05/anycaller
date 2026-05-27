@@ -4,3 +4,7 @@ node_modules/
 .env
 .env.local
 *.log
+
+# Claude Code per-machine settings — project config sits in
+# .claude/settings.json; .local.json is the developer's machine.
+.claude/settings.local.json
